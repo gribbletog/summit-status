@@ -140,8 +140,18 @@ function App() {
 
   // Load CSV from data folder on mount
   useEffect(() => {
-    fetch('/data/Summit 2025 Session Details Report.csv')
+    fetch('/data/Summit 2025 Session Details Report.csv', {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
       .then(response => {
+        if (!response.ok) {
+          throw new Error('CSV not found');
+        }
         // Get the Last-Modified header if available
         const lastModified = response.headers.get('Last-Modified');
         const fileDate = lastModified ? new Date(lastModified).getTime() : Date.now();
