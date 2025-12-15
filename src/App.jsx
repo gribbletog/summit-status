@@ -3,6 +3,7 @@ import { parseCSV, getUniqueValues, getStats } from './utils/csvParser';
 import Dashboard from './components/Dashboard';
 import SessionList from './components/SessionList';
 import SpeakersView from './components/SpeakersView';
+import TracksView from './components/TracksView';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
 
@@ -10,7 +11,7 @@ function App() {
   const [sessions, setSessions] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [view, setView] = useState('overview'); // 'overview', 'sessions', or 'speakers'
+  const [view, setView] = useState('overview'); // 'overview', 'sessions', 'speakers', or 'tracks'
   const [lastUpdated, setLastUpdated] = useState(null);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [filters, setFilters] = useState({
@@ -225,6 +226,12 @@ function App() {
           >
             Speakers
           </button>
+          <button
+            className={view === 'tracks' ? 'active' : ''}
+            onClick={() => setView('tracks')}
+          >
+            Tracks
+          </button>
         </nav>
       </header>
 
@@ -254,6 +261,10 @@ function App() {
 
         {view === 'speakers' && (
           <SpeakersView sessions={sessions} />
+        )}
+
+        {view === 'tracks' && (
+          <TracksView sessions={sessions} />
         )}
       </main>
     </div>
