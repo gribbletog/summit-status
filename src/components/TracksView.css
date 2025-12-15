@@ -269,3 +269,53 @@
   color: #5a6fd8;
 }
 
+.wip-card {
+  border: 2px solid #f1c40f;
+  background: #fffbf0;
+}
+
+.track-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.track-wip-badge {
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
+}
+
+.track-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.track-card-edit-wip {
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-style: normal;
+}
+
+.track-card-edit-wip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.wip-toggle {
+  background: rgba(241, 196, 15, 0.15);
+  border: 2px solid #f1c40f;
+}
+
+.wip-toggle:hover {
+  background: rgba(241, 196, 15, 0.25);
+}
+

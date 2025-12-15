@@ -122,6 +122,31 @@
   color: white;
 }
 
+.badge-wip {
+  background: rgba(241, 196, 15, 0.9);
+  color: white;
+  font-weight: 700;
+}
+
+.edit-wip-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-style: normal;
+  margin-left: auto;
+}
+
+.edit-wip-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 .session-body {
   padding: 1.5rem;
 }

@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
+import WIPModal from './WIPModal';
+import { isWIPSession, saveWIPOverride, hasWIPOverride } from '../utils/wipStorage';
 import './TracksView.css';
 
-const TracksView = ({ sessions }) => {
+const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate }) => {
   const [showMainTracksOnly, setShowMainTracksOnly] = useState(true);
   const [expandAll, setExpandAll] = useState(false);
   const [expandedTracks, setExpandedTracks] = useState({});
   const [expandedCards, setExpandedCards] = useState({});
+  const [editingSession, setEditingSession] = useState(null);
 
   // Get most common track manager for a track
   const getMostCommonTrackManager = (trackSessions) => {
@@ -120,6 +123,22 @@ const TracksView = ({ sessions }) => {
     }));
   };
 
+  const handleEditWIP = (session) => {
+    setEditingSession(session);
+  };
+
+  const handleSaveWIP = (wipData) => {
+    if (editingSession) {
+      saveWIPOverride(editingSession['SESSION CODE'], wipData);
+      setEditingSession(null);
+      onWIPUpdate(); // Refresh data
+    }
+  };
+
+  const handleCloseModal = () => {
+    setEditingSession(null);
+  };
+
   const handleExpandAll = () => {
     const newExpandAll = !expandAll;
     setExpandAll(newExpandAll);
@@ -167,9 +186,19 @@ const TracksView = ({ sessions }) => {
     const plainDescription = description.replace(/<[^>]*>/g, '');
     const isLongContent = title.length > 80 || plainDescription.length > 200;
     
+    const sessionIsWIP = isWIPSession(session);
+    const sessionHasWIPOverride = hasWIPOverride(session['SESSION CODE']);
+
     return (
-      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''}`}>
-        <h4 className="track-card-title">{title}</h4>
+      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${sessionIsWIP ? 'wip-card' : ''}`}>
+        <div className="track-card-header">
+          <h4 className="track-card-title">{title}</h4>
+          {sessionIsWIP && (
+            <span className="track-wip-badge">
+              {sessionHasWIPOverride ? '📝' : '⚠️'}
+            </span>
+          )}
+        </div>
         
         <div 
           className="track-card-description"
@@ -189,14 +218,24 @@ const TracksView = ({ sessions }) => {
           </div>
         )}
         
-        {isLongContent && (
-          <button 
-            className="track-card-more"
-            onClick={() => toggleCard(cardId)}
-          >
-            {isExpanded ? 'Show less' : 'More...'}
-          </button>
-        )}
+        <div className="track-card-actions">
+          {isLongContent && (
+            <button 
+              className="track-card-more"
+              onClick={() => toggleCard(cardId)}
+            >
+              {isExpanded ? 'Show less' : 'More...'}
+            </button>
+          )}
+          {sessionIsWIP && (
+            <button 
+              className="track-card-edit-wip"
+              onClick={() => handleEditWIP(session)}
+            >
+              {sessionHasWIPOverride ? 'Edit WIP' : 'Add WIP'}
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -228,6 +267,17 @@ const TracksView = ({ sessions }) => {
             />
             <span>Show main in-person tracks only</span>
           </label>
+          
+          {wipCount > 0 && (
+            <label className="track-toggle wip-toggle">
+              <input
+                type="checkbox"
+                checked={showWIPData}
+                onChange={onToggleWIP}
+              />
+              <span>Show WIP Data ({wipCount})</span>
+            </label>
+          )}
           
           <button 
             className="expand-all-button"
@@ -283,6 +333,14 @@ const TracksView = ({ sessions }) => {
           );
         })}
       </div>
+
+      {editingSession && (
+        <WIPModal
+          session={editingSession}
+          onSave={handleSaveWIP}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
