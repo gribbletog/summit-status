@@ -52,7 +52,7 @@ The application will be available at `http://localhost:5173`
 
 ### Loading Data
 
-The app automatically loads data from `/data/Summit 2025 Session Details Report.csv` on startup. You can also upload a new CSV file using the file upload button.
+Place your CSV file at `/data/Summit 2025 Session Details Report.csv` (this file is not included in the repository for privacy reasons). The app will automatically load it on startup. You can also upload a CSV file using the file upload button in the application.
 
 ## Built With
 
