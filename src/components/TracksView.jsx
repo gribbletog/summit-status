@@ -75,24 +75,31 @@ const TracksView = ({ sessions }) => {
 
   // Filter tracks
   const filteredTracks = useMemo(() => {
-    if (!showMainTracksOnly) return trackData;
+    let filtered = [...trackData];
     
-    // Exclude these tracks when showing only main in-person tracks
-    const excludedTracks = [
-      'Keynote',
-      'Sneaks',
-      'Strategy Keynote',
-      'Community Theater',
-      'CP Theater',
-      'Sponsors',
-      'Summit-other',
-      'Industry Session',
-      'ACS',
-      'Skill Exchange',
-      'ADLS'
-    ];
+    if (showMainTracksOnly) {
+      // Exclude these tracks when showing only main in-person tracks
+      const excludedTracks = [
+        'Keynote and Sneaks',
+        'Keynote',
+        'Sneaks',
+        'Strategy Keynote',
+        'Community Theater',
+        'CP Theater',
+        'Sponsors',
+        'Summit - other',
+        'Summit-other',
+        'Industry Session',
+        'ACS',
+        'Skill Exchange',
+        'ADLS'
+      ];
+      
+      filtered = filtered.filter(track => !excludedTracks.includes(track.name));
+    }
     
-    return trackData.filter(track => !excludedTracks.includes(track.name));
+    // Sort alphabetically by track name
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
   }, [trackData, showMainTracksOnly]);
 
   const toggleTrack = (trackName) => {
