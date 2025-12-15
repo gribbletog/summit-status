@@ -246,6 +246,12 @@ function App() {
             Overview
           </button>
           <button
+            className={view === 'tracks' ? 'active' : ''}
+            onClick={() => setView('tracks')}
+          >
+            Tracks
+          </button>
+          <button
             className={view === 'sessions' ? 'active' : ''}
             onClick={() => setView('sessions')}
           >
@@ -256,12 +262,6 @@ function App() {
             onClick={() => setView('speakers')}
           >
             Speakers
-          </button>
-          <button
-            className={view === 'tracks' ? 'active' : ''}
-            onClick={() => setView('tracks')}
-          >
-            Tracks
           </button>
         </nav>
       </header>
