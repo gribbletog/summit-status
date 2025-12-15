@@ -3,7 +3,7 @@ import { parseCSV, getUniqueValues, getStats } from './utils/csvParser';
 import Dashboard from './components/Dashboard';
 import SessionList from './components/SessionList';
 import SpeakersView from './components/SpeakersView';
-import FileUpload from './components/FileUpload';
+import SplashScreen from './components/SplashScreen';
 import './App.css';
 
 function App() {
@@ -12,6 +12,7 @@ function App() {
   const [stats, setStats] = useState(null);
   const [view, setView] = useState('overview'); // 'overview', 'sessions', or 'speakers'
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [filters, setFilters] = useState({
     sessionType: '',
     internalTrack: '',
@@ -47,6 +48,9 @@ function App() {
         sessionStatuses: getUniqueValues(data, 'SESSION STATUS'),
         products: getUniqueValues(data, 'CFP: PRODUCTS'),
       });
+      
+      // Close splash screen after successful upload
+      setShowSplashScreen(false);
     } catch (error) {
       console.error('Error parsing CSV:', error);
       alert('Error parsing CSV file. Please check the file format.');
@@ -153,11 +157,21 @@ function App() {
       })
       .catch(error => {
         console.log('No default CSV found, waiting for file upload');
+        // Keep splash screen open if no CSV found
+        setShowSplashScreen(true);
       });
   }, []);
 
   return (
     <div className="app">
+      {showSplashScreen && (
+        <SplashScreen 
+          onFileUpload={handleFileUpload}
+          onClose={() => setShowSplashScreen(false)}
+          showCloseButton={sessions.length > 0}
+        />
+      )}
+
       <header className="app-header">
         <div className="header-content">
           <h1>Summit 2026 Session Status Dashboard</h1>
@@ -187,45 +201,43 @@ function App() {
           >
             Speakers
           </button>
+          {sessions.length > 0 && (
+            <button
+              className="upload-new-button"
+              onClick={() => setShowSplashScreen(true)}
+            >
+              Upload New CSV
+            </button>
+          )}
         </nav>
       </header>
 
       <main className="app-main">
-        {sessions.length === 0 ? (
-          <FileUpload onFileUpload={handleFileUpload} />
-        ) : (
-          <>
-            <div className="file-reload">
-              <FileUpload onFileUpload={handleFileUpload} compact />
-            </div>
+        {view === 'overview' && stats && (
+          <Dashboard 
+            stats={stats} 
+            totalSessions={sessions.length} 
+            allSessions={sessions}
+            onNavigateToSessions={(track, sessionType) => {
+              setView('sessions');
+              handleFilterChange('internalTrack', track);
+              handleFilterChange('sessionType', sessionType);
+            }}
+          />
+        )}
 
-            {view === 'overview' && stats && (
-              <Dashboard 
-                stats={stats} 
-                totalSessions={sessions.length} 
-                allSessions={sessions}
-                onNavigateToSessions={(track, sessionType) => {
-                  setView('sessions');
-                  handleFilterChange('internalTrack', track);
-                  handleFilterChange('sessionType', sessionType);
-                }}
-              />
-            )}
+        {view === 'sessions' && (
+          <SessionList
+            sessions={filteredSessions}
+            filters={filters}
+            filterOptions={filterOptions}
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+          />
+        )}
 
-            {view === 'sessions' && (
-              <SessionList
-                sessions={filteredSessions}
-                filters={filters}
-                filterOptions={filterOptions}
-                onFilterChange={handleFilterChange}
-                onClearFilters={clearFilters}
-              />
-            )}
-
-            {view === 'speakers' && (
-              <SpeakersView sessions={sessions} />
-            )}
-          </>
+        {view === 'speakers' && (
+          <SpeakersView sessions={sessions} />
         )}
       </main>
     </div>

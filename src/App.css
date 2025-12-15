@@ -80,13 +80,22 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+.nav-tabs button.upload-new-button {
+  margin-left: auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.nav-tabs button.upload-new-button:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4191 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
 .app-main {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.file-reload {
-  margin-bottom: 1.5rem;
 }
 
