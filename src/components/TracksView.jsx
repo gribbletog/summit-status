@@ -10,7 +10,7 @@ const TracksView = ({ sessions }) => {
   // Get most common track manager for a track
   const getMostCommonTrackManager = (trackSessions) => {
     const managers = trackSessions
-      .map(s => s['CFP: TRACK MANAGER NAME'])
+      .map(s => s['TRACK MANAGER NAME'])
       .filter(m => m && m.trim() !== '');
     
     if (managers.length === 0) return null;
