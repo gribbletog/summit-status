@@ -187,7 +187,7 @@
 .tracks-container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .track-section {
@@ -199,7 +199,7 @@
 }
 
 .track-header-wrapper {
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .track-header-row {
@@ -207,7 +207,7 @@
   align-items: center;
   gap: 1rem;
   cursor: pointer;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .track-header-row:hover .track-header h3 {
