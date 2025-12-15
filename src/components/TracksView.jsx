@@ -77,8 +77,19 @@ const TracksView = ({ sessions }) => {
   const filteredTracks = useMemo(() => {
     if (!showMainTracksOnly) return trackData;
     
-    // Exclude these tracks
-    const excludedTracks = ['Skill Exchange', 'ADLS', 'Summit-other'];
+    // Exclude these tracks when showing only main in-person tracks
+    const excludedTracks = [
+      'Keynote',
+      'Sneaks',
+      'Strategy Keynote',
+      'Community Theater',
+      'Sponsors',
+      'Summit-other',
+      'Industry Session',
+      'ACS',
+      'Skill Exchange',
+      'ADLS'
+    ];
     
     return trackData.filter(track => !excludedTracks.includes(track.name));
   }, [trackData, showMainTracksOnly]);
