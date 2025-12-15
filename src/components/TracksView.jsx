@@ -3,7 +3,7 @@ import WIPModal from './WIPModal';
 import { isWIPSession, saveWIPOverride, hasWIPOverride } from '../utils/wipStorage';
 import './TracksView.css';
 
-const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate }) => {
+const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate, showFilterOverlay, onCloseFilterOverlay }) => {
   const [showMainTracksOnly, setShowMainTracksOnly] = useState(true);
   const [expandAll, setExpandAll] = useState(false);
   const [expandedTracks, setExpandedTracks] = useState({});
@@ -257,36 +257,44 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate 
 
   return (
     <div className="tracks-view">
-      <div className="tracks-header">
-        <div className="tracks-toggles">
-          <label className="track-toggle">
-            <input
-              type="checkbox"
-              checked={showMainTracksOnly}
-              onChange={(e) => setShowMainTracksOnly(e.target.checked)}
-            />
-            <span>Show main in-person tracks only</span>
-          </label>
-          
-          {wipCount > 0 && (
-            <label className="track-toggle wip-toggle">
-              <input
-                type="checkbox"
-                checked={showWIPData}
-                onChange={onToggleWIP}
-              />
-              <span>Show WIP Data ({wipCount})</span>
-            </label>
-          )}
-          
-          <button 
-            className="expand-all-button"
-            onClick={handleExpandAll}
-          >
-            {expandAll ? 'Collapse All' : 'Expand All'}
-          </button>
+      {showFilterOverlay && (
+        <div className="filter-overlay-backdrop" onClick={onCloseFilterOverlay}>
+          <div className="filter-overlay-panel" onClick={(e) => e.stopPropagation()}>
+            <button className="filter-overlay-close" onClick={onCloseFilterOverlay}>&times;</button>
+            
+            <div className="tracks-header">
+              <div className="tracks-toggles">
+                <label className="track-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showMainTracksOnly}
+                    onChange={(e) => setShowMainTracksOnly(e.target.checked)}
+                  />
+                  <span>Show main in-person tracks only</span>
+                </label>
+                
+                {wipCount > 0 && (
+                  <label className="track-toggle wip-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showWIPData}
+                      onChange={onToggleWIP}
+                    />
+                    <span>Show WIP Data ({wipCount})</span>
+                  </label>
+                )}
+                
+                <button 
+                  className="expand-all-button"
+                  onClick={handleExpandAll}
+                >
+                  {expandAll ? 'Collapse All' : 'Expand All'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="tracks-list">
         {filteredTracks.map(track => {

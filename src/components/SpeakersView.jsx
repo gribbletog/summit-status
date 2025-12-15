@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import SessionCard from './SessionCard';
 import './SpeakersView.css';
 
-function SpeakersView({ sessions }) {
+function SpeakersView({ sessions, showFilterOverlay, onCloseFilterOverlay }) {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [speakerCompanyFilter, setSpeakerCompanyFilter] = useState('');
   const [trackFilter, setTrackFilter] = useState('');
@@ -128,71 +128,79 @@ function SpeakersView({ sessions }) {
 
   return (
     <div className="speakers-view">
-      <div className="speakers-filter-panel">
-        {/* Session Type Radio Buttons */}
-        <div className="filter-section">
-          <label className="filter-section-label">Session Type</label>
-          <div className="radio-group-horizontal">
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="sessionType"
-                value=""
-                checked={sessionTypeFilter === ''}
-                onChange={(e) => setSessionTypeFilter(e.target.value)}
-              />
-              <span>All</span>
-            </label>
-            {sessionTypes.map((type) => (
-              <label key={type} className="radio-label">
-                <input
-                  type="radio"
-                  name="sessionType"
-                  value={type}
-                  checked={sessionTypeFilter === type}
-                  onChange={(e) => setSessionTypeFilter(e.target.value)}
-                />
-                <span>{type}</span>
-              </label>
-            ))}
+      {showFilterOverlay && (
+        <div className="filter-overlay-backdrop" onClick={onCloseFilterOverlay}>
+          <div className="filter-overlay-panel" onClick={(e) => e.stopPropagation()}>
+            <button className="filter-overlay-close" onClick={onCloseFilterOverlay}>&times;</button>
+            
+            <div className="speakers-filter-panel">
+              {/* Session Type Radio Buttons */}
+              <div className="filter-section">
+                <label className="filter-section-label">Session Type</label>
+                <div className="radio-group-horizontal">
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="sessionType"
+                      value=""
+                      checked={sessionTypeFilter === ''}
+                      onChange={(e) => setSessionTypeFilter(e.target.value)}
+                    />
+                    <span>All</span>
+                  </label>
+                  {sessionTypes.map((type) => (
+                    <label key={type} className="radio-label">
+                      <input
+                        type="radio"
+                        name="sessionType"
+                        value={type}
+                        checked={sessionTypeFilter === type}
+                        onChange={(e) => setSessionTypeFilter(e.target.value)}
+                      />
+                      <span>{type}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dropdown Filters */}
+              <div className="filters-grid">
+                <div className="filter-group">
+                  <label htmlFor="speakerCompany">Speaker Company</label>
+                  <select
+                    id="speakerCompany"
+                    value={speakerCompanyFilter}
+                    onChange={(e) => setSpeakerCompanyFilter(e.target.value)}
+                  >
+                    <option value="">All Companies</option>
+                    {speakerCompanies.map((company) => (
+                      <option key={company} value={company}>
+                        {company}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label htmlFor="track">Track</label>
+                  <select
+                    id="track"
+                    value={trackFilter}
+                    onChange={(e) => setTrackFilter(e.target.value)}
+                  >
+                    <option value="">All Tracks</option>
+                    {tracks.map((track) => (
+                      <option key={track} value={track}>
+                        {track}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Dropdown Filters */}
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label htmlFor="speakerCompany">Speaker Company</label>
-            <select
-              id="speakerCompany"
-              value={speakerCompanyFilter}
-              onChange={(e) => setSpeakerCompanyFilter(e.target.value)}
-            >
-              <option value="">All Companies</option>
-              {speakerCompanies.map((company) => (
-                <option key={company} value={company}>
-                  {company}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="track">Track</label>
-            <select
-              id="track"
-              value={trackFilter}
-              onChange={(e) => setTrackFilter(e.target.value)}
-            >
-              <option value="">All Tracks</option>
-              {tracks.map((track) => (
-                <option key={track} value={track}>
-                  {track}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      )}
 
       <div className="speakers-table-container">
         <div className="results-info">

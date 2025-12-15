@@ -19,6 +19,8 @@ function App() {
   const [showWIPData, setShowWIPData] = useState(true);
   const [wipCount, setWipCount] = useState(0);
   const [showFilterOverlay, setShowFilterOverlay] = useState(false);
+  const [showSpeakersFilterOverlay, setShowSpeakersFilterOverlay] = useState(false);
+  const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false);
   const [filters, setFilters] = useState({
     sessionType: '',
     internalTrack: '',
@@ -266,10 +268,14 @@ function App() {
             Speakers
           </button>
         </nav>
-        {view === 'sessions' && (
+        {(view === 'sessions' || view === 'speakers' || view === 'tracks') && (
           <button 
             className="filter-toggle-btn"
-            onClick={() => setShowFilterOverlay(!showFilterOverlay)}
+            onClick={() => {
+              if (view === 'sessions') setShowFilterOverlay(!showFilterOverlay);
+              if (view === 'speakers') setShowSpeakersFilterOverlay(!showSpeakersFilterOverlay);
+              if (view === 'tracks') setShowTracksFilterOverlay(!showTracksFilterOverlay);
+            }}
             title="Toggle filters"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -312,7 +318,11 @@ function App() {
         )}
 
         {view === 'speakers' && (
-          <SpeakersView sessions={sessions} />
+          <SpeakersView 
+            sessions={sessions}
+            showFilterOverlay={showSpeakersFilterOverlay}
+            onCloseFilterOverlay={() => setShowSpeakersFilterOverlay(false)}
+          />
         )}
 
         {view === 'tracks' && (
@@ -322,6 +332,8 @@ function App() {
             wipCount={wipCount}
             onToggleWIP={handleWIPDataToggle}
             onWIPUpdate={refreshWIPData}
+            showFilterOverlay={showTracksFilterOverlay}
+            onCloseFilterOverlay={() => setShowTracksFilterOverlay(false)}
           />
         )}
       </main>
