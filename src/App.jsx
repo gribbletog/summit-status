@@ -18,6 +18,7 @@ function App() {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showWIPData, setShowWIPData] = useState(true);
   const [wipCount, setWipCount] = useState(0);
+  const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [filters, setFilters] = useState({
     sessionType: '',
     internalTrack: '',
@@ -225,18 +226,32 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1>Summit 2026 Session Status Dashboard</h1>
-          {lastUpdated && (
-            <div className="header-updated">
-              <span className="updated-label">Updated:</span>
+          <div className="header-right">
+            {lastUpdated && (
+              <div className="header-updated">
+                <span className="updated-label">Updated:</span>
+                <button 
+                  className="updated-badge"
+                  onClick={() => setShowSplashScreen(true)}
+                  title="Click to upload new CSV"
+                >
+                  {formatUpdateDate(lastUpdated)}
+                </button>
+              </div>
+            )}
+            {view === 'sessions' && (
               <button 
-                className="updated-badge"
-                onClick={() => setShowSplashScreen(true)}
-                title="Click to upload new CSV"
+                className="filter-toggle-btn"
+                onClick={() => setShowFilterOverlay(!showFilterOverlay)}
+                title="Toggle filters"
               >
-                {formatUpdateDate(lastUpdated)}
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M3 4h14M6 8h8M8 12h4M9 16h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Filters
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <nav className="nav-tabs">
           <button
@@ -291,6 +306,8 @@ function App() {
             wipCount={wipCount}
             onToggleWIP={handleWIPDataToggle}
             onWIPUpdate={refreshWIPData}
+            showFilterOverlay={showFilterOverlay}
+            onCloseFilterOverlay={() => setShowFilterOverlay(false)}
           />
         )}
 

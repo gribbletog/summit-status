@@ -4,7 +4,7 @@ import WIPModal from './WIPModal';
 import { isWIPSession, saveWIPOverride, hasWIPOverride } from '../utils/wipStorage';
 import './SessionList.css';
 
-function SessionList({ sessions, filters, filterOptions, onFilterChange, onClearFilters, showWIPData, wipCount, onToggleWIP, onWIPUpdate }) {
+function SessionList({ sessions, filters, filterOptions, onFilterChange, onClearFilters, showWIPData, wipCount, onToggleWIP, onWIPUpdate, showFilterOverlay, onCloseFilterOverlay }) {
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
   const [editingSession, setEditingSession] = useState(null);
 
@@ -30,7 +30,12 @@ function SessionList({ sessions, filters, filterOptions, onFilterChange, onClear
 
   return (
     <div className="session-list-container">
-      <div className="filters-panel">
+      {showFilterOverlay && (
+        <>
+          <div className="filter-overlay-backdrop" onClick={onCloseFilterOverlay} />
+          <div className="filter-overlay-panel">
+            <button className="filter-overlay-close" onClick={onCloseFilterOverlay}>×</button>
+            <div className="filters-panel">
         <div className="filters-header">
           <h2>Filters</h2>
           {hasActiveFilters && (
@@ -209,6 +214,9 @@ function SessionList({ sessions, filters, filterOptions, onFilterChange, onClear
           </div>
         </div>
       </div>
+          </div>
+        </>
+      )}
 
       <div className="sessions-results">
         <div className="results-header">
