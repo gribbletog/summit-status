@@ -1,0 +1,383 @@
+.dashboard {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.session-overview {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.overview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.session-overview h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0;
+  font-style: normal;
+}
+
+.overview-total {
+  font-size: 1.25rem;
+  color: #5a6c7d;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.overview-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.overview-item {
+  padding: 0.5rem 0;
+}
+
+.overview-item.total-item {
+  padding-top: 1rem;
+  border-top: 2px solid #f5f7fa;
+}
+
+.overview-bar-container {
+  width: 100%;
+}
+
+.overview-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.overview-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.overview-count {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.overview-count.total-count {
+  color: #2c3e50;
+  font-size: 1.25rem;
+}
+
+.overview-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: #e8ecf0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.overview-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.published-bar {
+  background: #27ae60;
+}
+
+.unpublished-bar {
+  background: #f39c12;
+}
+
+.status-breakdown {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.status-breakdown h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-style: normal;
+}
+
+.status-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.status-item {
+  padding: 0.5rem 0;
+}
+
+.status-bar-container {
+  width: 100%;
+}
+
+.status-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.status-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.status-count {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.status-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: #e8ecf0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.status-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.track-completion {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 2rem;
+}
+
+.track-completion h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-style: normal;
+}
+
+.tracks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.track-section {
+  border: 2px solid #f5f7fa;
+  border-radius: 12px;
+  padding: 0;
+  background: #fafbfc;
+  overflow: hidden;
+}
+
+.track-header-wrapper {
+  padding: 1.5rem;
+}
+
+.track-header-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.track-header-row:hover .track-header h3 {
+  color: #667eea;
+}
+
+.track-expand-button {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0.25rem;
+  transition: transform 0.2s ease;
+  font-style: normal;
+  flex-shrink: 0;
+}
+
+.track-expand-button.expanded {
+  transform: rotate(90deg);
+}
+
+.track-expand-button:hover {
+  color: #764ba2;
+}
+
+.track-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.track-header-row h3 {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 700;
+  font-style: normal;
+  transition: color 0.2s ease;
+}
+
+.track-manager {
+  font-size: 1rem;
+  color: #5a6c7d;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.track-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.track-progress-bar-bg {
+  flex: 1;
+  height: 12px;
+  background: #e8ecf0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.track-progress-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease, background 0.3s ease;
+}
+
+.track-progress-percent {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-style: normal;
+  min-width: 45px;
+  text-align: right;
+}
+
+.session-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+  padding-top: 0;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.session-type-card {
+  background: white;
+  border: 1px solid #e8ecf0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.session-type-card.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.session-type-card.clickable:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.session-type-card.clickable:hover h4 {
+  color: #764ba2;
+}
+
+.session-type-card h4 {
+  font-size: 0.9rem;
+  color: #667eea;
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-style: normal;
+  transition: color 0.2s ease;
+}
+
+.type-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.type-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-style: normal;
+}
+
+.type-stat-item span {
+  font-weight: 400;
+}
+
+.type-stat-item strong {
+  font-weight: 700;
+  font-style: normal;
+}
+
+.type-stat-item.total-row {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e8ecf0;
+}
+
+.published-value {
+  color: #27ae60;
+}
+
+.unpublished-value {
+  color: #f39c12;
+}
+
+.total-value {
+  color: #2c3e50;
+}
+

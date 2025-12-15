@@ -1,0 +1,247 @@
+.speakers-view {
+  animation: fadeIn 0.5s ease;
+}
+
+.speakers-filter-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.speakers-filter-panel .filter-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f5f7fa;
+}
+
+.speakers-filter-panel .filter-section-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5a6c7d;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-style: normal;
+}
+
+.speakers-filter-panel .radio-group-horizontal {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.speakers-filter-panel .radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  font-style: normal;
+}
+
+.speakers-filter-panel .radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.speakers-filter-panel .radio-label span {
+  font-style: normal;
+}
+
+.speakers-filter-panel .filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.speakers-filter-panel .filter-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5a6c7d;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-style: normal;
+}
+
+.speakers-filter-panel .filter-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e8ecf0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speakers-filter-panel .filter-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.speakers-table-container {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.results-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.results-info h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0;
+  font-style: normal;
+}
+
+.results-info .results-count {
+  background: #f5f7fa;
+  color: #5a6c7d;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.speakers-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.speakers-table thead {
+  background: #f5f7fa;
+  border-bottom: 2px solid #e8ecf0;
+}
+
+.speakers-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-style: normal;
+}
+
+.speakers-table tbody tr.speaker-row {
+  border-bottom: 1px solid #e8ecf0;
+  transition: background 0.2s ease;
+}
+
+.speakers-table tbody tr.speaker-row:hover {
+  background: #f8f9ff;
+}
+
+.speakers-table td {
+  padding: 1rem;
+  color: #2c3e50;
+  font-style: normal;
+}
+
+.expand-column {
+  width: 40px;
+  text-align: center;
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0.25rem;
+  transition: transform 0.2s ease;
+  font-style: normal;
+}
+
+.expand-button.expanded {
+  transform: rotate(90deg);
+}
+
+.expand-button:hover {
+  color: #764ba2;
+}
+
+.speaker-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.session-code-cell {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.published-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-style: normal;
+}
+
+.published-badge.published {
+  background: rgba(39, 174, 96, 0.1);
+  color: #27ae60;
+}
+
+.published-badge.unpublished {
+  background: rgba(243, 156, 18, 0.1);
+  color: #f39c12;
+}
+
+.expanded-row {
+  background: #fafbfc;
+}
+
+.expanded-row td {
+  padding: 0;
+}
+
+.expanded-content {
+  padding: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: #5a6c7d;
+}
+
+.no-results p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
