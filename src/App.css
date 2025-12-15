@@ -50,6 +50,20 @@
   font-style: normal;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.updated-badge:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4191 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.updated-badge:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
 }
 
 .nav-tabs {
@@ -78,19 +92,6 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.nav-tabs button.upload-new-button {
-  margin-left: auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 600;
-}
-
-.nav-tabs button.upload-new-button:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4191 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
 }
 
 .app-main {

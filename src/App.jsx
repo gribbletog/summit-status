@@ -178,7 +178,13 @@ function App() {
           {lastUpdated && (
             <div className="header-updated">
               <span className="updated-label">Updated:</span>
-              <span className="updated-badge">{formatUpdateDate(lastUpdated)}</span>
+              <button 
+                className="updated-badge"
+                onClick={() => setShowSplashScreen(true)}
+                title="Click to upload new CSV"
+              >
+                {formatUpdateDate(lastUpdated)}
+              </button>
             </div>
           )}
         </div>
@@ -201,14 +207,6 @@ function App() {
           >
             Speakers
           </button>
-          {sessions.length > 0 && (
-            <button
-              className="upload-new-button"
-              onClick={() => setShowSplashScreen(true)}
-            >
-              Upload New CSV
-            </button>
-          )}
         </nav>
       </header>
 
