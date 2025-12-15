@@ -1,0 +1,197 @@
+.wip-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
+}
+
+.wip-modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+}
+
+.wip-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  font-style: normal;
+}
+
+.wip-modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.wip-modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 1.5rem 0;
+  font-style: normal;
+}
+
+.wip-session-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.wip-info-item {
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-style: normal;
+}
+
+.wip-info-item strong {
+  color: #667eea;
+  margin-right: 0.5rem;
+}
+
+.wip-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.wip-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.wip-form-group label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-style: normal;
+}
+
+.required {
+  color: #e74c3c;
+}
+
+.wip-form-group input,
+.wip-form-group textarea {
+  padding: 0.75rem;
+  border: 2px solid #e8ecf0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  font-style: normal;
+}
+
+.wip-form-group input:focus,
+.wip-form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.wip-form-group textarea {
+  resize: vertical;
+  min-height: 150px;
+  line-height: 1.5;
+}
+
+.wip-speakers-section {
+  border-top: 2px solid #e8ecf0;
+  padding-top: 1.5rem;
+}
+
+.wip-speakers-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  font-style: normal;
+}
+
+.wip-form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.wip-form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e8ecf0;
+}
+
+.wip-btn-cancel,
+.wip-btn-save {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-style: normal;
+}
+
+.wip-btn-cancel {
+  background: #f0f2f5;
+  color: #5a6c7d;
+}
+
+.wip-btn-cancel:hover {
+  background: #e8ecf0;
+}
+
+.wip-btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.wip-btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+  .wip-form-row {
+    flex-direction: column;
+  }
+  
+  .wip-modal-content {
+    padding: 1.5rem;
+  }
+}
+

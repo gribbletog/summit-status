@@ -1,8 +1,28 @@
+import { useState } from 'react';
 import SessionCard from './SessionCard';
+import WIPModal from './WIPModal';
+import { isWIPSession, saveWIPOverride, hasWIPOverride } from '../utils/wipStorage';
 import './SessionList.css';
 
-function SessionList({ sessions, filters, filterOptions, onFilterChange, onClearFilters }) {
+function SessionList({ sessions, filters, filterOptions, onFilterChange, onClearFilters, showWIPData, wipCount, onToggleWIP, onWIPUpdate }) {
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
+  const [editingSession, setEditingSession] = useState(null);
+
+  const handleEditWIP = (session) => {
+    setEditingSession(session);
+  };
+
+  const handleSaveWIP = (wipData) => {
+    if (editingSession) {
+      saveWIPOverride(editingSession['SESSION CODE'], wipData);
+      setEditingSession(null);
+      onWIPUpdate(); // Refresh data
+    }
+  };
+
+  const handleCloseModal = () => {
+    setEditingSession(null);
+  };
 
   // Define session type groups
   const trackSessions = ['Community Theater', 'Hands-on Lab', 'Session', 'Online Session'];
@@ -192,10 +212,24 @@ function SessionList({ sessions, filters, filterOptions, onFilterChange, onClear
 
       <div className="sessions-results">
         <div className="results-header">
-          <h2>Sessions</h2>
-          <span className="results-count">
-            {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
-          </span>
+          <div className="results-header-left">
+            <h2>Sessions</h2>
+            <span className="results-count">
+              {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+            </span>
+          </div>
+          {wipCount > 0 && (
+            <div className="wip-toggle-container">
+              <label className="wip-toggle">
+                <input
+                  type="checkbox"
+                  checked={showWIPData}
+                  onChange={onToggleWIP}
+                />
+                <span>Show WIP Data ({wipCount})</span>
+              </label>
+            </div>
+          )}
         </div>
 
         <div className="sessions-grid">
@@ -205,11 +239,25 @@ function SessionList({ sessions, filters, filterOptions, onFilterChange, onClear
             </div>
           ) : (
             sessions.map((session, index) => (
-              <SessionCard key={index} session={session} />
+              <SessionCard 
+                key={index} 
+                session={session}
+                isWIP={isWIPSession(session)}
+                hasWIPOverride={hasWIPOverride(session['SESSION CODE'])}
+                onEditWIP={() => handleEditWIP(session)}
+              />
             ))
           )}
         </div>
       </div>
+
+      {editingSession && (
+        <WIPModal
+          session={editingSession}
+          onSave={handleSaveWIP}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

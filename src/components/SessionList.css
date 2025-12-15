@@ -198,3 +198,43 @@
   font-size: 1.1rem;
 }
 
+.results-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.wip-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.wip-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-style: normal;
+}
+
+.wip-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.wip-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.wip-toggle span {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-style: normal;
+}
+

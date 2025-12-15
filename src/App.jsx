@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { parseCSV, getUniqueValues, getStats } from './utils/csvParser';
+import { applyWIPOverrides, countWIPOverrides } from './utils/wipStorage';
 import Dashboard from './components/Dashboard';
 import SessionList from './components/SessionList';
 import SpeakersView from './components/SpeakersView';
@@ -9,11 +10,14 @@ import './App.css';
 
 function App() {
   const [sessions, setSessions] = useState([]);
+  const [rawSessions, setRawSessions] = useState([]); // CSV data without WIP overrides
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [stats, setStats] = useState(null);
   const [view, setView] = useState('overview'); // 'overview', 'sessions', 'speakers', or 'tracks'
   const [lastUpdated, setLastUpdated] = useState(null);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
+  const [showWIPData, setShowWIPData] = useState(true);
+  const [wipCount, setWipCount] = useState(0);
   const [filters, setFilters] = useState({
     sessionType: '',
     internalTrack: '',
@@ -31,9 +35,16 @@ function App() {
   const handleFileUpload = async (file) => {
     try {
       const data = await parseCSV(file);
-      setSessions(data);
-      setFilteredSessions(data);
-      setStats(getStats(data));
+      setRawSessions(data); // Store raw CSV data
+      
+      // Apply WIP overrides
+      const sessionsWithWIP = applyWIPOverrides(data, showWIPData);
+      setSessions(sessionsWithWIP);
+      setFilteredSessions(sessionsWithWIP);
+      setStats(getStats(sessionsWithWIP));
+      
+      // Update WIP count
+      setWipCount(countWIPOverrides());
       
       // Use the file's last modified date
       if (file.lastModified) {
@@ -44,10 +55,10 @@ function App() {
       
       // Extract unique values for filters
       setFilterOptions({
-        sessionTypes: getUniqueValues(data, 'DERIVED_SESSION_TYPE'),
-        internalTracks: getUniqueValues(data, 'CFP: INTERNAL TRACK (SUMMIT)'),
-        sessionStatuses: getUniqueValues(data, 'SESSION STATUS'),
-        products: getUniqueValues(data, 'CFP: PRODUCTS'),
+        sessionTypes: getUniqueValues(sessionsWithWIP, 'DERIVED_SESSION_TYPE'),
+        internalTracks: getUniqueValues(sessionsWithWIP, 'CFP: INTERNAL TRACK (SUMMIT)'),
+        sessionStatuses: getUniqueValues(sessionsWithWIP, 'SESSION STATUS'),
+        products: getUniqueValues(sessionsWithWIP, 'CFP: PRODUCTS'),
       });
       
       // Close splash screen after successful upload
@@ -138,6 +149,26 @@ function App() {
       products: '',
     });
   };
+
+  const handleWIPDataToggle = () => {
+    setShowWIPData(!showWIPData);
+  };
+
+  const refreshWIPData = () => {
+    // Re-apply WIP overrides to raw sessions
+    const sessionsWithWIP = applyWIPOverrides(rawSessions, showWIPData);
+    setSessions(sessionsWithWIP);
+    setFilteredSessions(sessionsWithWIP);
+    setStats(getStats(sessionsWithWIP));
+    setWipCount(countWIPOverrides());
+  };
+
+  // Re-apply WIP overrides when toggle changes
+  useEffect(() => {
+    if (rawSessions.length > 0) {
+      refreshWIPData();
+    }
+  }, [showWIPData]);
 
   // Load CSV from data folder on mount
   useEffect(() => {
@@ -256,6 +287,10 @@ function App() {
             filterOptions={filterOptions}
             onFilterChange={handleFilterChange}
             onClearFilters={clearFilters}
+            showWIPData={showWIPData}
+            wipCount={wipCount}
+            onToggleWIP={handleWIPDataToggle}
+            onWIPUpdate={refreshWIPData}
           />
         )}
 
@@ -264,7 +299,13 @@ function App() {
         )}
 
         {view === 'tracks' && (
-          <TracksView sessions={sessions} />
+          <TracksView 
+            sessions={sessions}
+            showWIPData={showWIPData}
+            wipCount={wipCount}
+            onToggleWIP={handleWIPDataToggle}
+            onWIPUpdate={refreshWIPData}
+          />
         )}
       </main>
     </div>
