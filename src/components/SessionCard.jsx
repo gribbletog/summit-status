@@ -82,15 +82,10 @@ function SessionCard({ session, isWIP = false, hasWIPOverride = false, onEditWIP
           {session['SESSION STATUS'] && (
             <span className="badge badge-status">{session['SESSION STATUS']}</span>
           )}
-          {isWIP && (
-            <span className="badge badge-wip">
-              {hasWIPOverride ? '📝 WIP Override' : '⚠️ WIP'}
-            </span>
-          )}
         </div>
         {isWIP && onEditWIP && (
           <button className="edit-wip-btn" onClick={onEditWIP} title="Edit WIP data">
-            {hasWIPOverride ? 'Edit WIP' : 'Add WIP Data'}
+            {hasWIPOverride ? '📝 Edit WIP' : 'Add WIP Data'}
           </button>
         )}
       </div>
