@@ -30,3 +30,6 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+
+# Data files - do not commit
+data/Summit 2025 Session Details Report.csv
