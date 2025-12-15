@@ -83,6 +83,7 @@ const TracksView = ({ sessions }) => {
       'Sneaks',
       'Strategy Keynote',
       'Community Theater',
+      'CP Theater',
       'Sponsors',
       'Summit-other',
       'Industry Session',
