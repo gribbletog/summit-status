@@ -135,6 +135,14 @@ const TracksView = ({ sessions }) => {
     return trackSessions.filter(s => s['DERIVED_SESSION_TYPE'] === type);
   };
 
+  // Helper to clean duplicate company names
+  const cleanCompanyName = (companyName) => {
+    if (!companyName) return null;
+    const parts = companyName.split(',').map(part => part.trim()).filter(part => part !== '');
+    const uniqueParts = [...new Set(parts)];
+    return uniqueParts.join(', ');
+  };
+
   const renderSessionCard = (session, trackName) => {
     const cardId = `${trackName}-${session['SESSION CODE']}`;
     const isExpanded = expandedCards[cardId];
@@ -144,14 +152,14 @@ const TracksView = ({ sessions }) => {
     const speakers = [];
     
     // Get speakers
-    if (session['SPEAKER 1 FIRST NAME'] && session['SPEAKER 1 LAST NAME']) {
-      const name = `${session['SPEAKER 1 FIRST NAME']} ${session['SPEAKER 1 LAST NAME']}`;
-      const company = session['SPEAKER 1 COMPANY'];
+    if (session['SPEAKER (ASSIGNED TO SESSION TASKS) NAME']) {
+      const name = session['SPEAKER (ASSIGNED TO SESSION TASKS) NAME'];
+      const company = cleanCompanyName(session['SPEAKER (ASSIGNED TO SESSION TASKS) COMPANY']);
       speakers.push({ name, company, type: 'Speaker' });
     }
-    if (session['SPEAKER 2 FIRST NAME'] && session['SPEAKER 2 LAST NAME']) {
-      const name = `${session['SPEAKER 2 FIRST NAME']} ${session['SPEAKER 2 LAST NAME']}`;
-      const company = session['SPEAKER 2 COMPANY'];
+    if (session['SPEAKER NAME']) {
+      const name = session['SPEAKER NAME'];
+      const company = cleanCompanyName(session['SPEAKER COMPANY']);
       speakers.push({ name, company, type: 'Co-presenter' });
     }
     
