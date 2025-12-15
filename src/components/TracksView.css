@@ -70,6 +70,7 @@
   padding: 1.25rem 1.5rem;
   cursor: pointer;
   transition: background 0.2s ease;
+  flex-wrap: wrap;
 }
 
 .track-summary:hover {
@@ -83,13 +84,6 @@
   font-style: normal;
 }
 
-.track-info {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  flex: 1;
-}
-
 .track-name {
   font-size: 1.25rem;
   font-weight: 700;
@@ -99,15 +93,17 @@
 
 .track-manager {
   font-size: 0.95rem;
-  color: #5a6c7d;
+  color: #7a8a9d;
   font-weight: 400;
   font-style: normal;
+  margin-left: 1rem;
 }
 
 .track-counts {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
 }
 
 .count-badge {

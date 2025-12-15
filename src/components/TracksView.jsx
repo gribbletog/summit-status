@@ -242,12 +242,10 @@ const TracksView = ({ sessions }) => {
             <div key={track.name} className="track-item">
               <div className="track-summary" onClick={() => toggleTrack(track.name)}>
                 <span className="track-caret">{isExpanded ? '▼' : '▶'}</span>
-                <div className="track-info">
-                  <span className="track-name">{track.name}</span>
-                  {trackManager && (
-                    <span className="track-manager">{trackManager}</span>
-                  )}
-                </div>
+                <span className="track-name">{track.name}</span>
+                {trackManager && (
+                  <span className="track-manager">{trackManager}</span>
+                )}
                 <div className="track-counts">
                   {track.CP.total > 0 && (
                     <span className="count-badge">CP {track.CP.published}/{track.CP.total}</span>
