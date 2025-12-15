@@ -226,34 +226,21 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1>Summit 2026 Session Status Dashboard</h1>
-          <div className="header-right">
-            {lastUpdated && (
-              <div className="header-updated">
-                <span className="updated-label">Updated:</span>
-                <button 
-                  className="updated-badge"
-                  onClick={() => setShowSplashScreen(true)}
-                  title="Click to upload new CSV"
-                >
-                  {formatUpdateDate(lastUpdated)}
-                </button>
-              </div>
-            )}
-            {view === 'sessions' && (
+          {lastUpdated && (
+            <div className="header-updated">
+              <span className="updated-label">Updated:</span>
               <button 
-                className="filter-toggle-btn"
-                onClick={() => setShowFilterOverlay(!showFilterOverlay)}
-                title="Toggle filters"
+                className="updated-badge"
+                onClick={() => setShowSplashScreen(true)}
+                title="Click to upload new CSV"
               >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M3 4h14M6 8h8M8 12h4M9 16h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                Filters
+                {formatUpdateDate(lastUpdated)}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-        <nav className="nav-tabs">
+        <div className="header-bottom">
+          <nav className="nav-tabs">
           <button
             className={view === 'overview' ? 'active' : ''}
             onClick={() => setView('overview')}
@@ -279,6 +266,19 @@ function App() {
             Speakers
           </button>
         </nav>
+        {view === 'sessions' && (
+          <button 
+            className="filter-toggle-btn"
+            onClick={() => setShowFilterOverlay(!showFilterOverlay)}
+            title="Toggle filters"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 4h14M6 8h8M8 12h4M9 16h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Filters
+          </button>
+        )}
+        </div>
       </header>
 
       <main className="app-main">

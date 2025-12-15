@@ -19,11 +19,10 @@
   margin-bottom: 1rem;
 }
 
-.header-right {
+.header-bottom {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .app-header h1 {
