@@ -95,7 +95,11 @@ const TracksView = ({ sessions }) => {
         'ADLS'
       ];
       
-      filtered = filtered.filter(track => !excludedTracks.includes(track.name));
+      // Filter out excluded tracks (trim names to handle trailing spaces)
+      filtered = filtered.filter(track => {
+        const trimmedName = track.name?.trim();
+        return !excludedTracks.includes(trimmedName);
+      });
     }
     
     // Sort alphabetically by track name
