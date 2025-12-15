@@ -140,6 +140,7 @@ function App() {
 
   // Load CSV from data folder on mount
   useEffect(() => {
+    console.log('🔍 Attempting to fetch CSV...');
     fetch('/data/Summit 2025 Session Details Report.csv', {
       cache: 'no-store',
       headers: {
@@ -149,9 +150,15 @@ function App() {
       }
     })
       .then(response => {
-        if (!response.ok) {
+        console.log('📡 Fetch response:', response.status, response.ok);
+        const contentType = response.headers.get('content-type');
+        console.log('📋 Content-Type:', contentType);
+        
+        // Check if we got HTML instead of CSV (means file doesn't exist)
+        if (!response.ok || contentType?.includes('text/html')) {
           throw new Error('CSV not found');
         }
+        
         // Get the Last-Modified header if available
         const lastModified = response.headers.get('Last-Modified');
         const fileDate = lastModified ? new Date(lastModified).getTime() : Date.now();
@@ -159,6 +166,7 @@ function App() {
         return response.text().then(csvText => ({ csvText, fileDate }));
       })
       .then(({ csvText, fileDate }) => {
+        console.log('✅ CSV loaded successfully');
         const file = new File([csvText], 'Summit 2025 Session Details Report.csv', { 
           type: 'text/csv',
           lastModified: fileDate
@@ -166,7 +174,7 @@ function App() {
         handleFileUpload(file);
       })
       .catch(error => {
-        console.log('No default CSV found, waiting for file upload');
+        console.log('❌ CSV fetch failed:', error.message);
         // Keep splash screen open if no CSV found
         setShowSplashScreen(true);
       });
