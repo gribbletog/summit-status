@@ -6,17 +6,64 @@ A React-based web application for visualizing and managing Adobe Summit 2026 ses
 
 ## Table of Contents
 
-1. [Quick Start](#quick-start)
-2. [Architecture Overview](#architecture-overview)
-3. [Key Features](#key-features)
-4. [Application Structure](#application-structure)
-5. [Data Model](#data-model)
-6. [Component Details](#component-details)
-7. [State Management](#state-management)
-8. [Styling Architecture](#styling-architecture)
-9. [WIP (Work-in-Progress) System](#wip-work-in-progress-system)
-10. [Filter System](#filter-system)
-11. [Development Guide](#development-guide)
+1. [Quick Reference for AI Assistants](#quick-reference-for-ai-assistants)
+2. [Quick Start](#quick-start)
+3. [Architecture Overview](#architecture-overview)
+4. [Key Features](#key-features)
+5. [Application Structure](#application-structure)
+6. [Data Model](#data-model)
+7. [Component Details](#component-details)
+8. [State Management](#state-management)
+9. [Styling Architecture](#styling-architecture)
+10. [WIP (Work-in-Progress) System](#wip-work-in-progress-system)
+11. [Filter System](#filter-system)
+12. [Development Guide](#development-guide)
+
+---
+
+## Quick Reference for AI Assistants
+
+**👋 New Cursor chat? Read this first!**
+
+### What This App Does
+Visualizes Adobe Summit session data from CSV exports. Four views: Overview (stats), Tracks (by track manager), Sessions (detailed cards), Speakers (table). Includes Work-in-Progress (WIP) system for enriching placeholder sessions.
+
+### Tech Stack
+React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single-user browser app.
+
+### Key Architecture Points
+
+1. **Data Flow**: CSV → `csvParser.js` → `App.jsx` (state) → View components
+2. **Session Types**: Derived from SESSION CODE prefix (S###→Session, L###→Lab, etc.)
+3. **WIP System**: Detects placeholder sessions, stores overrides in localStorage, toggleable display
+4. **Filters**: Header-triggered overlays (slide from right), separate state per view
+5. **Styling**: CSS variables in `index.css`, no preprocessor, purple gradient theme
+
+### File Organization
+- `App.jsx`: Main orchestrator (state, routing, data)
+- `src/components/`: View components (Dashboard, SessionList, SessionCard, SpeakersView, TracksView)
+- `src/utils/csvParser.js`: CSV parsing + session type derivation
+- `src/utils/wipStorage.js`: localStorage WIP management
+
+### Common Gotchas
+- CSV column names are **case-sensitive** and **include spaces**
+- `DERIVED_SESSION_TYPE` is computed, not in CSV
+- Track names may have trailing spaces (must `.trim()`)
+- Company names can be duplicated (e.g., "Adobe, Adobe") - must deduplicate
+- Filter overlays share CSS from `SessionList.css`
+- Date in header comes from file modification time, not current date
+
+### Making Changes
+- **Add filter**: Update `App.jsx` filters state + filter options + useEffect logic
+- **Add view**: Create component + add to `App.jsx` nav tabs + routing
+- **Modify session display**: Edit `SessionCard.jsx` (used in all views)
+- **Change CSV parsing**: Update `src/utils/csvParser.js`
+
+### Current State
+- 4 views working with filter overlays
+- WIP system fully functional (add/edit/delete, localStorage persistence)
+- Filter button in header (bottom-right, only on Sessions/Speakers/Tracks views)
+- Tab order: Overview → Tracks → Sessions → Speakers
 
 ---
 
@@ -82,17 +129,19 @@ To reload data later, click the **Updated: [Date]** badge in the header.
   - Clickable session types → navigate to filtered Sessions view
 
 ### 2. Tracks View
-- List of all internal tracks with:
-  - Track manager name
+- List of all internal tracks (alphabetically sorted) with:
+  - Track manager name (in grey text)
   - Session counts by type (e.g., "S 2/4" = 2 published out of 4 total)
   - Completion percentage with color-coded progress bar
-- **Toggle**: Show main in-person tracks only (excludes Keynotes, Sneaks, CP Theater, etc.)
-- **Expand/Collapse**: Expand all tracks or collapse all
-- **Session Cards**: Mini cards with title, description, speakers
+- **Expandable tracks**: Click track to expand and show session cards by type
+- **Session Cards**: Mini cards (4 across) with title, description, speakers
   - "More..." button for long content
   - Yellow background for WIP sessions
-  - "Add WIP Data" / "Edit WIP" buttons
-- **WIP Toggle**: Show CSV data vs WIP override data
+  - "Add WIP Data" / "Edit WIP" buttons inline
+- **Filter Overlay** (triggered from header button):
+  - Show main in-person tracks only (checkbox - excludes Keynotes, Sneaks, CP Theater, Sponsors, Summit-other, Industry Session, ACS, Skill Exchange, ADLS)
+  - Show WIP Data (checkbox, only if WIP overrides exist)
+  - Expand All / Collapse All (button)
 
 ### 3. Sessions View
 - Full session cards with detailed information
@@ -101,13 +150,24 @@ To reload data later, click the **Updated: [Date]** badge in the header.
 - Formatted dates: "Sunday, April 19"
 - HTML rendering in descriptions (with bullet list formatting)
 - Speaker and Co-presenter with company names
-- **Filter Overlay**: Session Type, Published status, Session Status, Internal Track, Products
+- WIP indicators: Yellow borders, "Add WIP Data" / "Edit WIP" buttons
+- **Filter Overlay** (triggered from header button):
+  - Session Type (radio buttons in 2 groups: Track/Summit)
+  - Published status (radio: All/Published/Unpublished)
+  - Session Status (radio: All/Accepted/New)
+  - Internal Track (dropdown)
+  - Products (dropdown)
+  - WIP Data toggle (checkbox, only if WIP overrides exist)
 
 ### 4. Speakers View
 - Spreadsheet-style table with columns:
-  - Speaker, Co-speaker, ID, Track, Type, Published
+  - Speaker, Co-speaker, ID (Session Code), Track (Internal Track), Type, Published
 - **Expandable rows**: Click caret to show full session card
-- **Filter Overlay**: Session Type, Speaker Company, Track
+- One row per session (assigned speaker + co-presenter)
+- **Filter Overlay** (triggered from header button):
+  - Session Type (radio: All + dynamic list)
+  - Speaker Company (dropdown: All Companies + deduplicated list)
+  - Track (dropdown: All Tracks + Internal Track list)
 
 ### 5. WIP (Work-in-Progress) Management
 - Detect WIP sessions (generic titles like "Developer Lab 1" or "Placeholder" descriptions)
@@ -117,10 +177,12 @@ To reload data later, click the **Updated: [Date]** badge in the header.
 - WIP overrides persist until real data comes in future CSV
 
 ### 6. Filter System
-- Filter overlays slide in from right side (positioned below header)
-- Backdrop closes overlay when clicked
-- Each view has relevant filters
-- Auto-selection: Choosing "Skill Exchange" type → auto-sets track to "Skill Exchange"
+- **Unified header button**: Filter icon button appears in header (bottom-right, aligned with nav tabs)
+- Filter overlays slide in from right side when button clicked
+- Backdrop closes overlay when clicked outside
+- Each view (Sessions, Speakers, Tracks) has its own overlay with relevant filters
+- **Auto-selection**: Choosing "Skill Exchange" type → auto-sets track to "Skill Exchange"
+- **Auto-selection**: Choosing "Pre-conference Training" → auto-sets track to "ADLS"
 
 ---
 
@@ -273,10 +335,12 @@ showFilterOverlay // Filter overlay state per view
 **Header Structure:**
 ```
 ┌─────────────────────────────────────────────────┐
-│ Title                        Updated: [Date]     │  ← Top row
-│ Overview | Tracks | Sessions | Speakers [Filter] │  ← Bottom row (nav + filter)
+│ Title                        Updated: [Date]     │  ← Top row (clickable date badge)
+│ Overview | Tracks | Sessions | Speakers [Filter] │  ← Bottom row (nav + filter button)
 └─────────────────────────────────────────────────┘
 ```
+
+**Note:** The filter button only appears when on Sessions, Speakers, or Tracks views (not on Overview).
 
 ---
 
@@ -307,15 +371,18 @@ showFilterOverlay // Filter overlay state per view
 
 **Responsibilities:**
 - Renders list of SessionCard components
-- **Filters moved to overlay** (triggered from header button)
+- Receives filtered sessions from App.jsx
+- No local filter state (all managed by App)
 
 **Filter Component:**
 - `SessionListFilters` - Separate component with all filter controls
-- Rendered inside filter overlay in `App.jsx`
+- Rendered inside filter overlay in `App.jsx` (not in SessionList itself)
+- Overlay triggered by header filter button
+- Includes WIP toggle if WIP overrides exist
 
 **WIP Integration:**
-- Shows WIP toggle if WIP overrides exist
-- Passes `onEditWIP` handler to SessionCard
+- Passes `showWIPData`, `onToggleWIPData`, `wipCount` props
+- Passes `onEditWIP` handler to SessionCard for WIP editing
 
 ---
 
@@ -377,10 +444,16 @@ speakerRows = [
 ```
 
 **Features:**
-- Expandable rows (caret icon)
-- Expanded row shows full SessionCard
-- Filter overlay with Session Type, Speaker Company, Track
+- Expandable rows (caret icon to expand/collapse)
+- Expanded row shows full SessionCard below
+- Filter overlay (triggered from header) with Session Type, Speaker Company, Track
 - Company deduplication (e.g., "Adobe, Adobe" → "Adobe")
+- Filters both assigned speaker and co-speaker companies
+
+**Props:**
+- `sessions` - Full session array
+- `showFilterOverlay` - Boolean to show/hide filter panel
+- `onCloseFilterOverlay` - Callback to close filter panel
 
 ---
 
@@ -406,10 +479,26 @@ speakerRows = [
   └────────┘ └────────┘ └────────┘ └────────┘
 ```
 
-**Toggles:**
+**Toggles (in Filter Overlay):**
 - Show main in-person tracks only (excludes: Keynote and Sneaks, Strategy Keynote, CP Theater, Sponsors, Summit - other, Industry Session, ACS, Skill Exchange, ADLS)
-- Show WIP Data
-- Expand All / Collapse All
+- Show WIP Data (only if `wipCount > 0`)
+- Expand All / Collapse All button
+
+**Props:**
+- `sessions` - Full session array
+- `showWIPData` - Boolean for WIP data display
+- `wipCount` - Number of active WIP overrides
+- `onToggleWIP` - Callback for WIP toggle
+- `onWIPUpdate` - Callback after WIP edit/delete
+- `showFilterOverlay` - Boolean to show/hide filter panel
+- `onCloseFilterOverlay` - Callback to close filter panel
+
+**Mini Session Cards:**
+- Horizontal grid layout (4 cards per row)
+- Shows title, description (truncated), speakers
+- "More..." button expands card to full content
+- Yellow background + border for WIP sessions
+- WIP editing buttons inline with content
 
 ---
 
@@ -557,11 +646,54 @@ Each component has its own CSS file following BEM-like conventions:
 - Buttons: Cursor pointer, hover effects, no border (unless specific)
 - Filter overlays: Fixed position, slide-in animation, backdrop blur
 
+**Shared Filter Overlay Styles:**
+Filter overlay CSS is defined in `SessionList.css` but used by all three views (Sessions, Speakers, Tracks):
+- `.filter-overlay-backdrop` - Full-screen semi-transparent overlay
+- `.filter-overlay-panel` - Slide-in panel from right
+- `.filter-overlay-close` - Close button (× icon)
+- Animations: `@keyframes fadeIn`, `@keyframes slideInRight`
+
 ### Responsive Considerations
 
 - Filter overlays: `max-width: 90vw` for smaller screens
 - Session cards: Stack vertically on mobile
 - Tracks view cards: Flexible grid (4 columns → 2 columns → 1 column)
+
+### CSS Styling Guidelines
+
+**Important Rules:**
+1. ❌ **NEVER use `!important`** - User preference, maintain proper specificity instead
+2. ✅ **No italics anywhere** - All text should have `font-style: normal`
+3. ✅ **Black text for readability** - Labels and content use `color: #000` or `color: black`
+4. ✅ **Extra bold labels** - Field labels use `font-weight: 900`
+
+**Color Palette:**
+- Primary purple: `#5258E4`
+- Secondary purple: `#7B61FF`
+- Background gradient: Purple (from `#667eea` to `#764ba2`)
+- Card background: `#ffffff` (white)
+- Text: `#000000` (black)
+- Secondary text: `#666666` (grey for track managers, totals)
+- Borders: `#e0e0e0` (light grey)
+
+**Badge Colors:**
+- Published: Green (`#10b981` background)
+- Unpublished/New: Orange (`#f59e0b` background)
+- Online: Blue (`#3b82f6` background)
+- Track tab: Black background, white text
+- Session code tab: Blue (`#3b82f6`) background, white text
+- WIP background tint: `rgba(255, 237, 153, 0.3)` (light yellow)
+
+**Progress Bar Colors:**
+- 0-33%: Red (`#ef4444`)
+- 33-66%: Yellow (`#f59e0b`)
+- 66-100%: Green (`#10b981`)
+
+**Spacing:**
+- Card padding: `1.5rem`
+- Section gaps: `1rem` to `2rem`
+- Tight spacing: `0.5rem` (for compact lists)
+- Track items: Reduced to `0.4rem` gap for compact display
 
 ---
 
@@ -634,20 +766,40 @@ isWIPSession(session) {
 
 ### Filter Overlay Architecture
 
-**Structure:**
-```
-<div className="filter-overlay-backdrop" onClick={close}>
-  <div className="filter-overlay-panel" onClick={stopPropagation}>
-    <button className="filter-overlay-close">&times;</button>
+**Trigger Button (Header):**
+- Located in header bottom row, aligned with nav tabs
+- Only visible on Sessions, Speakers, and Tracks views
+- Icon: Funnel/filter SVG icon + "Filters" text
+- Position: Bottom-right, same vertical alignment as nav buttons
+
+**Overlay Structure:**
+```jsx
+<div className="filter-overlay-backdrop" onClick={onCloseFilterOverlay}>
+  <div className="filter-overlay-panel" onClick={(e) => e.stopPropagation()}>
+    <button className="filter-overlay-close" onClick={onCloseFilterOverlay}>
+      &times;
+    </button>
     [Filter controls specific to each view]
   </div>
 </div>
 ```
 
+**Styling:**
+- Panel: Fixed position, right side, 400px width (max 90vw)
+- Full height with scroll overflow
+- White background, shadow
+- z-index: 1000 (backdrop), 1001 (panel)
+
 **Animation:**
-- Backdrop: Fade in (`opacity: 0 → 1`)
-- Panel: Slide in from right (`translateX(100%) → 0`)
-- Duration: 0.2s ease
+- Backdrop: Fade in (`opacity: 0 → 1`, 0.2s)
+- Panel: Slide in from right (`translateX(100%) → 0`, 0.3s)
+- Easing: ease-out for smooth entry
+
+**Behavior:**
+- Click backdrop → closes overlay
+- Click close button (×) → closes overlay
+- Click inside panel → stays open (stopPropagation)
+- Each view manages its own overlay state (separate state variables)
 
 ### Filter Types
 
