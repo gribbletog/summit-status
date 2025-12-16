@@ -16,7 +16,8 @@ function SessionList({ sessions, filters, filterOptions, onFilterChange, onClear
     if (editingSession) {
       saveWIPOverride(editingSession['SESSION CODE'], wipData);
       setEditingSession(null);
-      onWIPUpdate(); // Refresh data
+      // Trigger refresh to update sessions with WIP data
+      onWIPUpdate();
     }
   };
 

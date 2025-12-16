@@ -187,10 +187,11 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
     const isLongContent = title.length > 80 || plainDescription.length > 200;
     
     const sessionIsWIP = isWIPSession(session);
+    // Always check localStorage for latest WIP override status
     const sessionHasWIPOverride = hasWIPOverride(session['SESSION CODE']);
 
     return (
-      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${sessionIsWIP ? 'wip-card' : ''}`}>
+      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${sessionIsWIP ? 'wip-card' : ''} ${sessionHasWIPOverride ? 'has-wip-override' : ''}`}>
         <div className="track-card-header">
           <h4 className="track-card-title">{title}</h4>
           {sessionIsWIP && (

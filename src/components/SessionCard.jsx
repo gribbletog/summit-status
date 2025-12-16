@@ -1,6 +1,9 @@
 import './SessionCard.css';
+import { hasWIPOverride as checkHasWIPOverride } from '../utils/wipStorage';
 
 function SessionCard({ session, isWIP = false, hasWIPOverride = false, onEditWIP }) {
+  // Always check localStorage for latest WIP override status
+  const currentHasWIPOverride = checkHasWIPOverride(session['SESSION CODE']);
   const renderHTML = (html) => {
     return { __html: html };
   };
@@ -84,7 +87,7 @@ function SessionCard({ session, isWIP = false, hasWIPOverride = false, onEditWIP
           )}
           {isWIP && onEditWIP && (
             <button className="edit-wip-btn" onClick={onEditWIP} title="Edit WIP data">
-              {hasWIPOverride ? '📝 Edit WIP' : 'Add WIP Data'}
+              {currentHasWIPOverride ? '📝 Edit WIP' : 'Add WIP Data'}
             </button>
           )}
         </div>

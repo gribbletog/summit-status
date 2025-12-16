@@ -163,6 +163,7 @@ function App() {
     setSessions(sessionsWithWIP);
     setFilteredSessions(sessionsWithWIP);
     setStats(getStats(sessionsWithWIP));
+    // Update WIP count
     setWipCount(countWIPOverrides());
   };
 
