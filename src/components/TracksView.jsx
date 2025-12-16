@@ -191,10 +191,10 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
     const sessionHasWIPOverride = hasWIPOverride(session['SESSION CODE']);
 
     return (
-      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${sessionIsWIP ? 'wip-card' : ''} ${sessionHasWIPOverride ? 'has-wip-override' : ''}`}>
+      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${(sessionIsWIP || sessionHasWIPOverride) ? 'wip-card' : ''} ${sessionHasWIPOverride ? 'has-wip-override' : ''}`}>
         <div className="track-card-header">
           <h4 className="track-card-title">{title}</h4>
-          {sessionIsWIP && (
+          {(sessionIsWIP || sessionHasWIPOverride) && (
             <span className="track-wip-badge">
               {sessionHasWIPOverride ? '📝' : '⚠️'}
             </span>
@@ -228,7 +228,7 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
               {isExpanded ? 'Show less' : 'More...'}
             </button>
           )}
-          {sessionIsWIP && (
+          {(sessionIsWIP || sessionHasWIPOverride) && (
             <button 
               className="track-card-edit-wip"
               onClick={() => handleEditWIP(session)}
