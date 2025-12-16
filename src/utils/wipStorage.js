@@ -6,14 +6,45 @@ const WIP_STORAGE_KEY = 'summit-wip-sessions';
 export const isWIPSession = (session) => {
   const title = session['SESSION TITLE'] || '';
   const description = session['SESSION ABSTRACT'] || '';
+  const descLower = description.toLowerCase();
   
   // Generic titles pattern: "Track Lab 1", "Developer Session 2", etc.
   const genericTitlePattern = /^[A-Za-z\s]+(Lab|Session|Theater)\s+\d+$/i;
   
-  return (
-    genericTitlePattern.test(title.trim()) ||
-    description.toLowerCase().includes('placeholder')
-  );
+  // WIP indicators
+  const wipIndicators = [
+    'placeholder',
+    'tbd',
+    'to be determined',
+    'speakers tbd',
+    'speaker tbd',
+    'need speaker',
+    'needs speaker',
+    'need content',
+    'needs content',
+    'coming soon',
+    'draft',
+    'in progress',
+    'wip'
+  ];
+  
+  // Check for generic title
+  if (genericTitlePattern.test(title.trim())) {
+    return true;
+  }
+  
+  // Check for WIP indicators in description
+  if (wipIndicators.some(indicator => descLower.includes(indicator))) {
+    return true;
+  }
+  
+  // Check for very short descriptions (likely placeholder)
+  const plainDescription = description.replace(/<[^>]*>/g, '').trim();
+  if (plainDescription.length > 0 && plainDescription.length < 50) {
+    return true;
+  }
+  
+  return false;
 };
 
 // Get all WIP overrides from localStorage
