@@ -182,7 +182,8 @@ App
 ### Persistent State (localStorage)
 - **WIP overrides only** (`summit-wip-overrides` key)
 - **No CSV storage** (uploaded each session)
-- **Simple JSON structure** (session code → override data)
+- **JSON structure** (session code → override data with enabled state)
+- **Per-session toggle state** (enabled/disabled flag in each override)
 
 ---
 
@@ -268,33 +269,72 @@ isWIPSession(session) {
     "speaker1": "John Doe",
     "speaker1Company": "Adobe",
     "speaker2": "Jane Smith",
-    "speaker2Company": "Microsoft"
+    "speaker2Company": "Microsoft",
+    "enabled": true,
+    "updatedAt": "2024-12-21T10:30:00.000Z"
   }
 }
 ```
 
+**Key fields:**
+- `enabled` (boolean): Controls WIP display (true = show WIP, false = show CSV)
+- `updatedAt` (ISO string): Last modification timestamp
+
 ### Merge Logic
 ```javascript
 applyWIPOverrides(rawSessions, showWIPData) {
-    if (!showWIPData) return rawSessions  // Show CSV only
+    if (!showWIPData) return rawSessions  // Global toggle: Show CSV only
     
     const overrides = getWIPOverrides()
     
     return rawSessions.map(session => {
         const override = overrides[session['SESSION CODE']]
-        if (!override || !isWIPSession(session)) return session
+        if (!override) return session
+        
+        // Add metadata about WIP override existence
+        const sessionWithMeta = {
+            ...session,
+            '_HAS_WIP_OVERRIDE': true,
+            '_WIP_OVERRIDE_ENABLED': override.enabled !== false
+        }
+        
+        // Only apply WIP data if enabled (individual toggle)
+        if (override.enabled === false) {
+            return sessionWithMeta  // Show CSV data, keep metadata
+        }
         
         // Merge: WIP data overwrites CSV fields
-        return { ...session, ...mappedOverride }
+        return { ...sessionWithMeta, ...mappedOverride }
     })
 }
 ```
 
+### Three-State System
+1. **No Override**: Session detected as WIP, no localStorage entry
+2. **Enabled Override** (`enabled: true`): WIP data displayed
+3. **Disabled Override** (`enabled: false`): CSV data displayed, WIP kept in storage
+
 ### UI Indicators
-- **Yellow background** on WIP session cards
-- **"Add WIP Data"** button (no override exists)
-- **"📝 Edit WIP"** button (override exists)
-- **Toggle** to switch between CSV and WIP views
+
+**Active WIP (enabled = true):**
+- Yellow background + yellow border
+- Badge: 📝
+- Buttons: "Edit WIP", "👁️ WIP" (green toggle button)
+
+**Disabled WIP (enabled = false):**
+- Gray background + gray border
+- Badge: 📝❌ (dimmed)
+- Buttons: "Edit WIP", "👁️ CSV" (gray toggle button)
+
+**No Override (WIP session):**
+- Yellow background + yellow border
+- Badge: ⚠️
+- Button: "Add WIP"
+
+**Action Buttons:**
+- **Add WIP**: Opens modal to create new override
+- **Edit WIP**: Opens modal to modify existing data
+- **👁️ WIP / 👁️ CSV**: Toggles enabled flag without opening modal
 
 ---
 
@@ -433,6 +473,65 @@ applyWIPOverrides(rawSessions, showWIPData) {
 
 ---
 
+## Recent Features (December 2024)
+
+### Section Filters (Tracks View)
+Allows users to show/hide specific session types across all tracks:
+- Community Theater
+- Sessions
+- Online Sessions
+- Hands-on Labs
+
+**Implementation:**
+```javascript
+// TracksView.jsx state
+const [visibleSections, setVisibleSections] = useState({
+  'Community Theater': true,
+  'Session': true,
+  'Online Session': true,
+  'Hands-on Lab': true
+});
+
+// Rendering logic checks visibility
+if (!visibleSections[sessionType]) return null;
+```
+
+**UI Location:** Filter overlay panel under "Show Sections" heading
+
+### Products Display (Track Cards)
+Track view cards now display products from `CFP: PRODUCTS` field:
+
+**Layout:**
+```
+┌────────────────────────────┐
+│ Session Title              │
+│ Description...             │
+├────────────┬───────────────┤
+│ Products   │ Speakers      │
+│ • Prod 1   │ John Doe      │
+│ • Prod 2   │ Adobe         │
+└────────────┴───────────────┘
+```
+
+**Implementation:**
+- Two-column grid layout (1fr 1fr)
+- Products parsed from comma-separated string
+- Always visible (no "More..." button needed)
+
+### Individual WIP Toggle
+Each session with WIP override can be toggled independently:
+
+**New Functions (wipStorage.js):**
+- `toggleWIPOverride(sessionCode)` - Toggles enabled flag
+- `isWIPOverrideEnabled(sessionCode)` - Checks enabled state
+
+**Benefits:**
+- Quickly compare WIP vs CSV data
+- Keep WIP data stored while viewing original
+- No need to delete/recreate overrides
+
+---
+
 ## Quick Commands
 
 ```bash
@@ -459,6 +558,6 @@ git push origin main
 
 ---
 
-**Last Updated:** December 2024  
+**Last Updated:** December 21, 2024  
 **Repository:** https://github.com/gribbletog/summit-status (private)
 

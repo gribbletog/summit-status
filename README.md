@@ -35,9 +35,10 @@ React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single
 
 1. **Data Flow**: CSV → `csvParser.js` → `App.jsx` (state) → View components
 2. **Session Types**: Derived from SESSION CODE prefix (S###→Session, L###→Lab, etc.)
-3. **WIP System**: Detects placeholder sessions, stores overrides in localStorage, toggleable display
+3. **WIP System**: Three-state system (Add/Edit/Toggle), stores enabled state in localStorage
 4. **Filters**: Header-triggered overlays (slide from right), separate state per view
-5. **Styling**: CSS variables in `index.css`, no preprocessor, purple gradient theme
+5. **Tracks View**: Section filters (show/hide session types), products display in cards
+6. **Styling**: CSS variables in `index.css`, no preprocessor, purple gradient theme
 
 ### File Organization
 - `App.jsx`: Main orchestrator (state, routing, data)
@@ -61,7 +62,10 @@ React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single
 
 ### Current State
 - 4 views working with filter overlays
-- WIP system fully functional (add/edit/delete, localStorage persistence)
+- WIP system fully functional (three-state: add/edit/toggle per session, localStorage persistence)
+- Tracks view with section filters (show/hide session types)
+- Products display in track cards (two-column layout with speakers)
+- Individual WIP toggle per session (view WIP or CSV data)
 - Filter button in header (bottom-right, only on Sessions/Speakers/Tracks views)
 - Tab order: Overview → Tracks → Sessions → Speakers
 
@@ -134,13 +138,19 @@ To reload data later, click the **Updated: [Date]** badge in the header.
   - Session counts by type (e.g., "S 2/4" = 2 published out of 4 total)
   - Completion percentage with color-coded progress bar
 - **Expandable tracks**: Click track to expand and show session cards by type
-- **Session Cards**: Mini cards (4 across) with title, description, speakers
+- **Session Cards**: Mini cards (4 across) with title, description, products, speakers
+  - Two-column layout: Products (left) and Speakers (right)
   - "More..." button for long content
-  - Yellow background for WIP sessions
-  - "Add WIP Data" / "Edit WIP" buttons inline
+  - Yellow background for WIP sessions (gray when WIP disabled)
+  - "Add WIP Data" / "Edit WIP" / "Toggle WIP" buttons inline
 - **Filter Overlay** (triggered from header button):
   - Show main in-person tracks only (checkbox - excludes Keynotes, Sneaks, CP Theater, Sponsors, Summit-other, Industry Session, ACS, Skill Exchange, ADLS)
   - Show WIP Data (checkbox, only if WIP overrides exist)
+  - **Section Filters**: Show/hide specific session types:
+    - Community Theater
+    - Sessions
+    - Online Sessions
+    - Hands-on Labs
   - Expand All / Collapse All (button)
 
 ### 3. Sessions View
@@ -171,9 +181,16 @@ To reload data later, click the **Updated: [Date]** badge in the header.
 
 ### 5. WIP (Work-in-Progress) Management
 - Detect WIP sessions (generic titles like "Developer Lab 1" or "Placeholder" descriptions)
-- Add/edit WIP data: Title, Description, Speakers (optional)
-- Store overrides in browser localStorage
-- Toggle between CSV and WIP data
+- **Three-state system** for each session:
+  - **Add WIP**: Create new WIP override for placeholder sessions
+  - **Edit WIP**: Modify existing WIP data
+  - **Toggle WIP**: Enable/disable WIP display per session (👁️ WIP / 👁️ CSV buttons)
+- Store overrides in browser localStorage with enabled/disabled state
+- Global toggle between CSV and WIP data (header filter overlay)
+- Individual session toggle to temporarily view CSV data while keeping WIP stored
+- Visual indicators:
+  - Active WIP: Yellow background, 📝 badge
+  - Disabled WIP: Gray background, 📝❌ badge
 - WIP overrides persist until real data comes in future CSV
 
 ### 6. Filter System
@@ -479,9 +496,14 @@ speakerRows = [
   └────────┘ └────────┘ └────────┘ └────────┘
 ```
 
-**Toggles (in Filter Overlay):**
+**Filters & Toggles (in Filter Overlay):**
 - Show main in-person tracks only (excludes: Keynote and Sneaks, Strategy Keynote, CP Theater, Sponsors, Summit - other, Industry Session, ACS, Skill Exchange, ADLS)
 - Show WIP Data (only if `wipCount > 0`)
+- **Section Filters**: Show/hide specific session types across all tracks
+  - Community Theater checkbox
+  - Sessions checkbox
+  - Online Sessions checkbox
+  - Hands-on Labs checkbox
 - Expand All / Collapse All button
 
 **Props:**
@@ -495,10 +517,17 @@ speakerRows = [
 
 **Mini Session Cards:**
 - Horizontal grid layout (4 cards per row)
-- Shows title, description (truncated), speakers
+- Shows title, description (truncated), products, speakers
+- Two-column info layout:
+  - Left column: Products (from CFP: PRODUCTS field)
+  - Right column: Speakers with company info
 - "More..." button expands card to full content
-- Yellow background + border for WIP sessions
-- WIP editing buttons inline with content
+- Yellow background + border for active WIP sessions
+- Gray background + border for disabled WIP sessions
+- WIP action buttons inline with content:
+  - "Add WIP" for placeholder sessions without overrides
+  - "Edit WIP" to modify existing WIP data
+  - "👁️ WIP" / "👁️ CSV" toggle button (green = WIP active, gray = CSV view)
 
 ---
 
@@ -585,6 +614,7 @@ const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false)
 - `expandedTracks` (object mapping track name → boolean)
 - `expandedCards` (Set of expanded card IDs)
 - `editingSession` (currently editing WIP session)
+- `visibleSections` (object mapping section type → boolean visibility)
 
 **WIPModal**: Form field state (`title`, `description`, `speaker1`, etc.)
 
@@ -737,28 +767,64 @@ isWIPSession(session) {
     "speaker1": "John Doe",
     "speaker1Company": "Adobe",
     "speaker2": "Jane Smith",
-    "speaker2Company": "Microsoft"
+    "speaker2Company": "Microsoft",
+    "enabled": true,
+    "updatedAt": "2024-12-21T10:30:00.000Z"
   },
   "L002": { ... }
 }
 ```
 
+**New fields:**
+- `enabled` (boolean): Controls whether WIP data is displayed (default: true)
+- `updatedAt` (ISO string): Timestamp of last update
+
 ### WIP Lifecycle
 
 1. **Detection**: App identifies WIP sessions on CSV load
 2. **Editing**: User clicks "Add WIP Data" or "Edit WIP"
-3. **Storage**: Data saved to localStorage, keyed by SESSION CODE
-4. **Merging**: `applyWIPOverrides()` merges WIP data into sessions array
-5. **Toggle**: Users can toggle between CSV data and WIP data views
-6. **Persistence**: WIP data persists across page reloads
-7. **Override**: When real data arrives in CSV (non-generic title), WIP is ignored
+3. **Storage**: Data saved to localStorage, keyed by SESSION CODE with `enabled: true`
+4. **Merging**: `applyWIPOverrides()` merges WIP data into sessions array (only if enabled)
+5. **Global Toggle**: Users can toggle between CSV data and WIP data views (all sessions)
+6. **Individual Toggle**: Users can toggle WIP per session (👁️ WIP / 👁️ CSV buttons)
+7. **Persistence**: WIP data and enabled/disabled state persist across page reloads
+8. **Override**: When real data arrives in CSV (non-generic title), WIP is ignored
+
+### WIP Three-State System
+
+Each session with WIP data has three possible actions:
+
+1. **Add WIP** (`hasWIPOverride === false`)
+   - Button: "Add WIP"
+   - Action: Opens WIPModal to create new override
+   - Result: Creates override with `enabled: true`
+
+2. **Edit WIP** (`hasWIPOverride === true`)
+   - Button: "Edit WIP"
+   - Action: Opens WIPModal with existing data
+   - Result: Updates override data, preserves enabled state
+
+3. **Toggle WIP** (`hasWIPOverride === true`)
+   - Button: "👁️ WIP" (green) or "👁️ CSV" (gray)
+   - Action: Toggles `enabled` flag without opening modal
+   - Result: Shows WIP data (enabled) or CSV data (disabled)
+   - WIP data remains in localStorage when disabled
 
 ### WIP UI Indicators
 
-- **Yellow background tint** on WIP session cards
-- **"Add WIP Data" button** for sessions without overrides
-- **"📝 Edit WIP" button** for sessions with existing overrides
-- **WIP toggle** in Sessions and Tracks views (only if `wipCount > 0`)
+- **Active WIP** (enabled = true):
+  - Yellow background + yellow border
+  - Badge: 📝
+  - Toggle button: "👁️ WIP" (green)
+- **Disabled WIP** (enabled = false):
+  - Gray background + gray border
+  - Badge: 📝❌ (dimmed)
+  - Toggle button: "👁️ CSV" (gray)
+- **No WIP override** (WIP session):
+  - Yellow background + yellow border
+  - Badge: ⚠️
+  - Button: "Add WIP"
+- **Global WIP toggle** in filter overlays (only if `wipCount > 0`)
 
 ---
 
@@ -821,7 +887,12 @@ isWIPSession(session) {
 **Tracks View:**
 1. **Show main in-person tracks only** (checkbox)
 2. **Show WIP Data** (checkbox, only if WIP overrides exist)
-3. **Expand All / Collapse All** (button)
+3. **Section Filters**: Show/hide specific session types
+   - Community Theater (checkbox)
+   - Sessions (checkbox)
+   - Online Sessions (checkbox)
+   - Hands-on Labs (checkbox)
+4. **Expand All / Collapse All** (button)
 
 ### Filter Auto-Selection Logic
 
@@ -984,4 +1055,4 @@ This is an internal Adobe tool. For questions or issues:
 
 Private - Adobe Internal Use Only
 
-**Last Updated:** December 2024
+**Last Updated:** December 21, 2024
