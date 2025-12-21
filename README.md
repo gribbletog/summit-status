@@ -769,7 +769,7 @@ isWIPSession(session) {
     "speaker2": "Jane Smith",
     "speaker2Company": "Microsoft",
     "enabled": true,
-    "updatedAt": "2024-12-21T10:30:00.000Z"
+    "updatedAt": "2025-12-21T10:30:00.000Z"
   },
   "L002": { ... }
 }
@@ -1055,4 +1055,4 @@ This is an internal Adobe tool. For questions or issues:
 
 Private - Adobe Internal Use Only
 
-**Last Updated:** December 21, 2024
+**Last Updated:** December 21, 2025

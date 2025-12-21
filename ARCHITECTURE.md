@@ -271,7 +271,7 @@ isWIPSession(session) {
     "speaker2": "Jane Smith",
     "speaker2Company": "Microsoft",
     "enabled": true,
-    "updatedAt": "2024-12-21T10:30:00.000Z"
+    "updatedAt": "2025-12-21T10:30:00.000Z"
   }
 }
 ```
@@ -473,7 +473,7 @@ applyWIPOverrides(rawSessions, showWIPData) {
 
 ---
 
-## Recent Features (December 2024)
+## Recent Features (December 2025)
 
 ### Section Filters (Tracks View)
 Allows users to show/hide specific session types across all tracks:
@@ -558,6 +558,6 @@ git push origin main
 
 ---
 
-**Last Updated:** December 21, 2024  
+**Last Updated:** December 21, 2025  
 **Repository:** https://github.com/gribbletog/summit-status (private)
 
