@@ -64,6 +64,7 @@ export const saveWIPOverride = (sessionCode, wipData) => {
     const overrides = getWIPOverrides();
     overrides[sessionCode] = {
       ...wipData,
+      enabled: wipData.enabled !== undefined ? wipData.enabled : true,
       updatedAt: new Date().toISOString()
     };
     localStorage.setItem(WIP_STORAGE_KEY, JSON.stringify(overrides));
@@ -99,6 +100,29 @@ export const getWIPOverride = (sessionCode) => {
   return overrides[sessionCode] || null;
 };
 
+// Toggle WIP override enabled state
+export const toggleWIPOverride = (sessionCode) => {
+  try {
+    const overrides = getWIPOverrides();
+    if (overrides[sessionCode]) {
+      overrides[sessionCode].enabled = !overrides[sessionCode].enabled;
+      overrides[sessionCode].updatedAt = new Date().toISOString();
+      localStorage.setItem(WIP_STORAGE_KEY, JSON.stringify(overrides));
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error toggling WIP data:', error);
+    return false;
+  }
+};
+
+// Check if WIP override is enabled
+export const isWIPOverrideEnabled = (sessionCode) => {
+  const overrides = getWIPOverrides();
+  return overrides[sessionCode]?.enabled !== false; // default to true if not set
+};
+
 // Apply WIP overrides to sessions
 export const applyWIPOverrides = (sessions, showWIP = true) => {
   if (!showWIP) return sessions;
@@ -111,16 +135,27 @@ export const applyWIPOverrides = (sessions, showWIP = true) => {
     
     if (!override) return session;
     
+    // Mark that this session has a WIP override (even if disabled)
+    const sessionWithMeta = {
+      ...session,
+      '_HAS_WIP_OVERRIDE': true,
+      '_WIP_OVERRIDE_ENABLED': override.enabled !== false
+    };
+    
+    // Only apply overrides if enabled
+    if (override.enabled === false) {
+      return sessionWithMeta;
+    }
+    
     // Apply overrides to session
     return {
-      ...session,
+      ...sessionWithMeta,
       'SESSION TITLE': override.title || session['SESSION TITLE'],
       'SESSION ABSTRACT': override.description || session['SESSION ABSTRACT'],
       'SPEAKER (ASSIGNED TO SESSION TASKS) NAME': override.speaker1 || session['SPEAKER (ASSIGNED TO SESSION TASKS) NAME'],
       'SPEAKER (ASSIGNED TO SESSION TASKS) COMPANY': override.speaker1Company || session['SPEAKER (ASSIGNED TO SESSION TASKS) COMPANY'],
       'SPEAKER NAME': override.speaker2 || session['SPEAKER NAME'],
-      'SPEAKER COMPANY': override.speaker2Company || session['SPEAKER COMPANY'],
-      '_HAS_WIP_OVERRIDE': true
+      'SPEAKER COMPANY': override.speaker2Company || session['SPEAKER COMPANY']
     };
   });
 };

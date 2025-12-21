@@ -222,13 +222,43 @@
   margin: 0.25rem 0;
 }
 
+.track-card-info-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e8ecf0;
+}
+
+.track-card-info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #667eea;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  font-style: normal;
+}
+
+.track-card-products {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.product-item {
+  font-size: 0.85rem;
+  color: #2c3e50;
+  font-weight: 500;
+  font-style: normal;
+  padding: 0.3rem 0;
+}
+
 .track-card-speakers {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e8ecf0;
 }
 
 .track-card-speaker {
@@ -274,6 +304,15 @@
   background: #fffbf0;
 }
 
+.wip-card.wip-disabled {
+  border: 2px solid #bdc3c7;
+  background: #ecf0f1;
+}
+
+.wip-card.wip-disabled .track-wip-badge {
+  opacity: 0.6;
+}
+
 .track-card-header {
   display: flex;
   align-items: center;
@@ -310,12 +349,83 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+.track-card-toggle-wip {
+  padding: 0.5rem 0.75rem;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-style: normal;
+}
+
+.track-card-toggle-wip.active {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.track-card-toggle-wip.inactive {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+
+.track-card-toggle-wip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 .wip-toggle {
   background: rgba(241, 196, 15, 0.15);
   border: 2px solid #f1c40f;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.wip-toggle span {
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .wip-toggle:hover {
   background: rgba(241, 196, 15, 0.25);
+}
+
+.section-filters {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e8ecf0;
+}
+
+.section-filters-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  font-style: normal;
+}
+
+.section-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 600px;
+}
+
+.section-toggle {
+  background: #f8f9fa;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #e8ecf0;
+  transition: all 0.2s ease;
+}
+
+.section-toggle:hover {
+  background: #f0f2f5;
+  border-color: #667eea;
+}
+
+.section-toggle input[type="checkbox"]:checked + span {
+  color: #667eea;
+  font-weight: 600;
 }
 

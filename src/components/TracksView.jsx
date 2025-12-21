@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import WIPModal from './WIPModal';
-import { isWIPSession, saveWIPOverride, hasWIPOverride } from '../utils/wipStorage';
+import { isWIPSession, saveWIPOverride, hasWIPOverride, toggleWIPOverride, isWIPOverrideEnabled } from '../utils/wipStorage';
 import './TracksView.css';
 
 const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate, showFilterOverlay, onCloseFilterOverlay }) => {
@@ -9,6 +9,21 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
   const [expandedTracks, setExpandedTracks] = useState({});
   const [expandedCards, setExpandedCards] = useState({});
   const [editingSession, setEditingSession] = useState(null);
+  
+  // Section visibility state
+  const [visibleSections, setVisibleSections] = useState({
+    'Community Theater': true,
+    'Session': true,
+    'Online Session': true,
+    'Hands-on Lab': true
+  });
+
+  const toggleSection = (sectionType) => {
+    setVisibleSections(prev => ({
+      ...prev,
+      [sectionType]: !prev[sectionType]
+    }));
+  };
 
   // Get most common track manager for a track
   const getMostCommonTrackManager = (trackSessions) => {
@@ -139,6 +154,11 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
     setEditingSession(null);
   };
 
+  const handleToggleWIP = (sessionCode) => {
+    toggleWIPOverride(sessionCode);
+    onWIPUpdate(); // Refresh data
+  };
+
   const handleExpandAll = () => {
     const newExpandAll = !expandAll;
     setExpandAll(newExpandAll);
@@ -182,6 +202,13 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
       speakers.push({ name, company, type: 'Co-presenter' });
     }
     
+    // Get products
+    const products = [];
+    if (session['CFP: PRODUCTS']) {
+      const productList = session['CFP: PRODUCTS'].split(',').map(p => p.trim()).filter(p => p !== '');
+      products.push(...productList);
+    }
+    
     // Strip HTML for length check
     const plainDescription = description.replace(/<[^>]*>/g, '');
     const isLongContent = title.length > 80 || plainDescription.length > 200;
@@ -189,14 +216,15 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
     const sessionIsWIP = isWIPSession(session);
     // Always check localStorage for latest WIP override status
     const sessionHasWIPOverride = hasWIPOverride(session['SESSION CODE']);
+    const wipOverrideEnabled = sessionHasWIPOverride && isWIPOverrideEnabled(session['SESSION CODE']);
 
     return (
-      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${(sessionIsWIP || sessionHasWIPOverride) ? 'wip-card' : ''} ${sessionHasWIPOverride ? 'has-wip-override' : ''}`}>
+      <div key={cardId} className={`track-session-card ${isExpanded ? 'expanded' : ''} ${(sessionIsWIP || sessionHasWIPOverride) ? 'wip-card' : ''} ${sessionHasWIPOverride ? 'has-wip-override' : ''} ${sessionHasWIPOverride && !wipOverrideEnabled ? 'wip-disabled' : ''}`}>
         <div className="track-card-header">
           <h4 className="track-card-title">{title}</h4>
           {(sessionIsWIP || sessionHasWIPOverride) && (
-            <span className="track-wip-badge">
-              {sessionHasWIPOverride ? '📝' : '⚠️'}
+            <span className="track-wip-badge" title={sessionHasWIPOverride ? (wipOverrideEnabled ? 'WIP Override Active' : 'WIP Override Disabled') : 'WIP Session'}>
+              {sessionHasWIPOverride ? (wipOverrideEnabled ? '📝' : '📝❌') : '⚠️'}
             </span>
           )}
         </div>
@@ -208,14 +236,30 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
           }}
         />
         
-        {speakers.length > 0 && (
-          <div className="track-card-speakers">
-            {speakers.map((speaker, idx) => (
-              <div key={idx} className="track-card-speaker">
-                <span className="speaker-name">{speaker.name}</span>
-                {speaker.company && <span className="speaker-company">{speaker.company}</span>}
+        {(products.length > 0 || speakers.length > 0) && (
+          <div className="track-card-info-columns">
+            {products.length > 0 && (
+              <div className="track-card-products">
+                <div className="track-card-info-label">Products</div>
+                {products.map((product, idx) => (
+                  <div key={idx} className="product-item">
+                    {product}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            
+            {speakers.length > 0 && (
+              <div className="track-card-speakers">
+                <div className="track-card-info-label">Speakers</div>
+                {speakers.map((speaker, idx) => (
+                  <div key={idx} className="track-card-speaker">
+                    <span className="speaker-name">{speaker.name}</span>
+                    {speaker.company && <span className="speaker-company">{speaker.company}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         
@@ -229,12 +273,23 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
             </button>
           )}
           {(sessionIsWIP || sessionHasWIPOverride) && (
-            <button 
-              className="track-card-edit-wip"
-              onClick={() => handleEditWIP(session)}
-            >
-              {sessionHasWIPOverride ? 'Edit WIP' : 'Add WIP'}
-            </button>
+            <>
+              <button 
+                className="track-card-edit-wip"
+                onClick={() => handleEditWIP(session)}
+              >
+                {sessionHasWIPOverride ? 'Edit WIP' : 'Add WIP'}
+              </button>
+              {sessionHasWIPOverride && (
+                <button 
+                  className={`track-card-toggle-wip ${wipOverrideEnabled ? 'active' : 'inactive'}`}
+                  onClick={() => handleToggleWIP(session['SESSION CODE'])}
+                  title={wipOverrideEnabled ? 'Hide WIP data (show CSV)' : 'Show WIP data'}
+                >
+                  {wipOverrideEnabled ? '👁️ WIP' : '👁️ CSV'}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -242,6 +297,9 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
   };
 
   const renderTrackSection = (track, sessionType, label) => {
+    // Check if this section type is visible
+    if (!visibleSections[sessionType]) return null;
+    
     const sessionsByType = getSessionsByType(track.sessions, sessionType);
     
     if (sessionsByType.length === 0) return null;
@@ -291,6 +349,47 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
                 >
                   {expandAll ? 'Collapse All' : 'Expand All'}
                 </button>
+              </div>
+              
+              <div className="section-filters">
+                <h3 className="section-filters-title">Show Sections:</h3>
+                <div className="section-filters-grid">
+                  <label className="track-toggle section-toggle">
+                    <input
+                      type="checkbox"
+                      checked={visibleSections['Community Theater']}
+                      onChange={() => toggleSection('Community Theater')}
+                    />
+                    <span>Community Theater</span>
+                  </label>
+                  
+                  <label className="track-toggle section-toggle">
+                    <input
+                      type="checkbox"
+                      checked={visibleSections['Session']}
+                      onChange={() => toggleSection('Session')}
+                    />
+                    <span>Sessions</span>
+                  </label>
+                  
+                  <label className="track-toggle section-toggle">
+                    <input
+                      type="checkbox"
+                      checked={visibleSections['Online Session']}
+                      onChange={() => toggleSection('Online Session')}
+                    />
+                    <span>Online Sessions</span>
+                  </label>
+                  
+                  <label className="track-toggle section-toggle">
+                    <input
+                      type="checkbox"
+                      checked={visibleSections['Hands-on Lab']}
+                      onChange={() => toggleSection('Hands-on Lab')}
+                    />
+                    <span>Hands-on Labs</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
