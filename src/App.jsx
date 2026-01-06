@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { parseCSV, getUniqueValues, getStats } from './utils/csvParser';
 import { applyWIPOverrides, countWIPOverrides } from './utils/wipStorage';
+import { parseTACSV, createLabToTAMapping } from './utils/taParser';
 import Dashboard from './components/Dashboard';
 import SessionList from './components/SessionList';
 import SpeakersView from './components/SpeakersView';
 import TracksView from './components/TracksView';
+import TAView from './components/TAView';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
 
@@ -13,7 +15,7 @@ function App() {
   const [rawSessions, setRawSessions] = useState([]); // CSV data without WIP overrides
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [view, setView] = useState('overview'); // 'overview', 'sessions', 'speakers', or 'tracks'
+  const [view, setView] = useState('overview'); // 'overview', 'tracks', 'sessions', 'speakers', or 'ta'
   const [lastUpdated, setLastUpdated] = useState(null);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showWIPData, setShowWIPData] = useState(true);
@@ -21,6 +23,10 @@ function App() {
   const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [showSpeakersFilterOverlay, setShowSpeakersFilterOverlay] = useState(false);
   const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false);
+  
+  // TA (Teaching Assistant) state
+  const [taData, setTAData] = useState([]);
+  const [labToTAs, setLabToTAs] = useState({});
   const [filters, setFilters] = useState({
     sessionType: '',
     internalTrack: '',
@@ -167,6 +173,25 @@ function App() {
     setWipCount(countWIPOverrides());
   };
 
+  // Handle TA CSV upload
+  const handleTAUpload = async (file) => {
+    try {
+      const text = await file.text();
+      const parsed = parseTACSV(text);
+      setTAData(parsed);
+      
+      // Create lab-to-TA mapping
+      const mapping = createLabToTAMapping(parsed);
+      setLabToTAs(mapping);
+      
+      console.log('✅ TA data loaded:', parsed.length, 'TAs');
+      console.log('✅ Lab mapping created:', Object.keys(mapping).length, 'labs');
+    } catch (error) {
+      console.error('Error parsing TA CSV:', error);
+      alert('Error parsing TA CSV file. Please check the file format.');
+    }
+  };
+
   // Re-apply WIP overrides when toggle changes
   useEffect(() => {
     if (rawSessions.length > 0) {
@@ -268,6 +293,12 @@ function App() {
           >
             Speakers
           </button>
+          <button
+            className={view === 'ta' ? 'active' : ''}
+            onClick={() => setView('ta')}
+          >
+            TA
+          </button>
         </nav>
         {(view === 'sessions' || view === 'speakers' || view === 'tracks') && (
           <button 
@@ -335,6 +366,15 @@ function App() {
             onWIPUpdate={refreshWIPData}
             showFilterOverlay={showTracksFilterOverlay}
             onCloseFilterOverlay={() => setShowTracksFilterOverlay(false)}
+          />
+        )}
+
+        {view === 'ta' && (
+          <TAView
+            sessions={sessions}
+            taData={taData}
+            labToTAs={labToTAs}
+            onTAUpload={handleTAUpload}
           />
         )}
       </main>
