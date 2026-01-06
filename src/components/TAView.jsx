@@ -6,6 +6,25 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
   const [expandedTracks, setExpandedTracks] = useState({});
   const [selectedLab, setSelectedLab] = useState(null);
 
+  // Helper to normalize names for comparison
+  const normalizeName = (name) => {
+    if (!name) return '';
+    // Convert "Last, First" to "first last" lowercase, remove extra spaces
+    return name.toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+  };
+
+  // Get all speaker names from all sessions for comparison
+  const allSpeakerNames = useMemo(() => {
+    const names = new Set();
+    sessions.forEach(session => {
+      const speaker1 = session['SPEAKER (ASSIGNED TO SESSION TASKS) NAME'];
+      const speaker2 = session['SPEAKER NAME'];
+      if (speaker1) names.add(normalizeName(speaker1));
+      if (speaker2) names.add(normalizeName(speaker2));
+    });
+    return names;
+  }, [sessions]);
+
   // Get all Hands-on Lab sessions enriched with TA data
   const labs = useMemo(() => {
     return sessions
@@ -14,8 +33,14 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
         const labCode = lab['SESSION CODE'];
         const allTAs = labToTAs[labCode] || [];
         
+        // Check if each TA is also a speaker in any session
+        const enrichedTAs = allTAs.map(ta => ({
+          ...ta,
+          isAlsoSpeaker: allSpeakerNames.has(normalizeName(ta.fullName))
+        }));
+        
         // Only count confirmed TAs for staffing calculations
-        const confirmedTAs = allTAs.filter(ta => ta.confirmed);
+        const confirmedTAs = enrichedTAs.filter(ta => ta.confirmed);
         const taCount = confirmedTAs.length;
         
         // Staffing logic: 0-2 red (critical), 3 yellow (toofew), 4-5 green (good), 6+ red (toomany)
@@ -27,10 +52,10 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
         return {
           ...lab,
           labCode,
-          tas: allTAs, // Keep all TAs (confirmed and unconfirmed)
+          tas: enrichedTAs, // Keep all TAs (confirmed and unconfirmed) with speaker flag
           confirmedTAs,
           taCount, // Confirmed count for staffing
-          totalTACount: allTAs.length, // Total including unconfirmed
+          totalTACount: enrichedTAs.length, // Total including unconfirmed
           staffingPercent: Math.min((taCount / 3) * 100, 100),
           staffingStatus,
           isCritical: taCount < 3,
@@ -40,7 +65,7 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
         };
       })
       .sort((a, b) => a.labCode.localeCompare(b.labCode));
-  }, [sessions, labToTAs]);
+  }, [sessions, labToTAs, allSpeakerNames]);
 
   // Group labs by track
   const labsByTrack = useMemo(() => {
@@ -221,10 +246,11 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
                             {lab.tas.map((ta, idx) => (
                               <div 
                                 key={idx} 
-                                className={`ta-assistant-name ${!ta.confirmed ? 'unconfirmed' : ''}`}
-                                title={`${ta.fullName}${!ta.confirmed ? ' (Not Confirmed)' : ''}\nAssigned to: ${ta.labs.join(', ')}`}
+                                className={`ta-assistant-name ${!ta.confirmed ? 'unconfirmed' : ''} ${ta.isAlsoSpeaker ? 'also-speaker' : ''}`}
+                                title={`${ta.fullName}${!ta.confirmed ? ' (Not Confirmed)' : ''}${ta.isAlsoSpeaker ? ' (Also Speaker/Instructor)' : ''}\nAssigned to: ${ta.labs.join(', ')}`}
                               >
                                 {!ta.confirmed && '❓ '}
+                                {ta.isAlsoSpeaker && '👨‍🏫 '}
                                 {ta.labs.length >= 3 ? '⭐' : '🎓'} {ta.fullName}
                               </div>
                             ))}
@@ -310,7 +336,7 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
               {selectedLab.tas.length > 0 ? (
                 <div className="ta-detail-list">
                   {selectedLab.tas.map((ta, idx) => (
-                    <div key={idx} className={`ta-detail-person ta ${!ta.confirmed ? 'unconfirmed' : ''}`}>
+                    <div key={idx} className={`ta-detail-person ta ${!ta.confirmed ? 'unconfirmed' : ''} ${ta.isAlsoSpeaker ? 'also-speaker' : ''}`}>
                       <div className="ta-person-icon">
                         {!ta.confirmed ? '❓' : ta.labs.length >= 3 ? '⭐' : '✓'}
                       </div>
@@ -319,6 +345,9 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
                           {ta.fullName}
                           {!ta.confirmed && (
                             <span className="ta-unconfirmed-badge">Not Confirmed</span>
+                          )}
+                          {ta.isAlsoSpeaker && (
+                            <span className="ta-speaker-badge">Also Speaker</span>
                           )}
                           {ta.confirmed && ta.labs.length >= 3 && (
                             <span className="ta-mvp-badge">MVP ({ta.labs.length} labs)</span>
