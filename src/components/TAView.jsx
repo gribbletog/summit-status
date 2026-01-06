@@ -12,8 +12,11 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
       .filter(session => session['DERIVED_SESSION_TYPE'] === 'Hands-on Lab')
       .map(lab => {
         const labCode = lab['SESSION CODE'];
-        const tas = labToTAs[labCode] || [];
-        const taCount = tas.length;
+        const allTAs = labToTAs[labCode] || [];
+        
+        // Only count confirmed TAs for staffing calculations
+        const confirmedTAs = allTAs.filter(ta => ta.confirmed);
+        const taCount = confirmedTAs.length;
         
         // Staffing logic: 0-2 red (critical), 3 yellow (toofew), 4-5 green (good), 6+ red (toomany)
         let staffingStatus = 'good'; // 4-5 TAs
@@ -24,8 +27,10 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
         return {
           ...lab,
           labCode,
-          tas,
-          taCount,
+          tas: allTAs, // Keep all TAs (confirmed and unconfirmed)
+          confirmedTAs,
+          taCount, // Confirmed count for staffing
+          totalTACount: allTAs.length, // Total including unconfirmed
           staffingPercent: Math.min((taCount / 3) * 100, 100),
           staffingStatus,
           isCritical: taCount < 3,
@@ -214,7 +219,12 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
                         {lab.tas.length > 0 && (
                           <div className="ta-lab-tas">
                             {lab.tas.map((ta, idx) => (
-                              <div key={idx} className="ta-assistant-name">
+                              <div 
+                                key={idx} 
+                                className={`ta-assistant-name ${!ta.confirmed ? 'unconfirmed' : ''}`}
+                                title={`${ta.fullName}${!ta.confirmed ? ' (Not Confirmed)' : ''}\nAssigned to: ${ta.labs.join(', ')}`}
+                              >
+                                {!ta.confirmed && '❓ '}
                                 {ta.labs.length >= 3 ? '⭐' : '🎓'} {ta.fullName}
                               </div>
                             ))}
@@ -300,16 +310,22 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
               {selectedLab.tas.length > 0 ? (
                 <div className="ta-detail-list">
                   {selectedLab.tas.map((ta, idx) => (
-                    <div key={idx} className="ta-detail-person ta">
+                    <div key={idx} className={`ta-detail-person ta ${!ta.confirmed ? 'unconfirmed' : ''}`}>
                       <div className="ta-person-icon">
-                        {ta.labs.length >= 3 ? '⭐' : '✓'}
+                        {!ta.confirmed ? '❓' : ta.labs.length >= 3 ? '⭐' : '✓'}
                       </div>
                       <div className="ta-person-info">
                         <div className="ta-person-name">
                           {ta.fullName}
-                          {ta.labs.length >= 3 && (
+                          {!ta.confirmed && (
+                            <span className="ta-unconfirmed-badge">Not Confirmed</span>
+                          )}
+                          {ta.confirmed && ta.labs.length >= 3 && (
                             <span className="ta-mvp-badge">MVP ({ta.labs.length} labs)</span>
                           )}
+                        </div>
+                        <div className="ta-person-detail">
+                          <strong>Assigned to:</strong> {ta.labs.join(', ')}
                         </div>
                         {ta.svp && (
                           <div className="ta-person-detail">SVP: {ta.svp}</div>

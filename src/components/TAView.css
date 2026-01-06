@@ -277,6 +277,19 @@
   color: #667eea;
   font-style: normal;
   font-weight: 500;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.ta-assistant-name:hover {
+  color: #5a6fd8;
+  transform: translateX(2px);
+}
+
+.ta-assistant-name.unconfirmed {
+  color: #999;
+  opacity: 0.7;
+  font-style: italic;
 }
 
 .ta-lab-warning {
@@ -449,6 +462,12 @@
   border-radius: 8px;
 }
 
+.ta-detail-person.unconfirmed {
+  background: #f3f4f6;
+  opacity: 0.8;
+  border-left: 3px solid #9ca3af;
+}
+
 .ta-person-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
@@ -477,6 +496,17 @@
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-style: normal;
+}
+
+.ta-unconfirmed-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #6b7280;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-style: normal;
+  margin-left: 0.5rem;
 }
 
 .ta-person-company,

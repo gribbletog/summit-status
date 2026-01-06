@@ -36,6 +36,10 @@ export const parseTACSV = (csvString) => {
         .filter(lab => lab.match(/^L\d+$/i)) // Only valid lab codes (L###)
         .map(lab => lab.toUpperCase());
 
+      // Parse confirmed status (default to false if not present or not "yes")
+      const confirmedValue = row['Confirmed']?.trim().toLowerCase();
+      const isConfirmed = confirmedValue === 'yes' || confirmedValue === 'y' || confirmedValue === 'true';
+
       return {
         track: row['Track']?.trim() || '',
         firstName: row['First Name']?.trim() || '',
@@ -45,6 +49,7 @@ export const parseTACSV = (csvString) => {
         labs: labs, // Array of lab codes
         nominatedBy: row['Nominated by: \n(EX: Instructor, TM)']?.trim() || '',
         notes: row['Notes']?.trim() || '',
+        confirmed: isConfirmed,
         fullName: [row['First Name']?.trim(), row['Last Name']?.trim()]
           .filter(n => n)
           .join(' ') || 'Unknown'
