@@ -245,6 +245,29 @@
   font-style: normal;
 }
 
+.ta-lab-tas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e8ecf0;
+}
+
+.ta-assistant-name {
+  font-size: 0.8rem;
+  color: #667eea;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.ta-more-tas {
+  font-size: 0.75rem;
+  color: #999;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
 .ta-lab-warning {
   font-size: 0.85rem;
   font-weight: 600;

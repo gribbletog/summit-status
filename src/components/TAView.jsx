@@ -190,6 +190,20 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
                           </div>
                         ))}
                       </div>
+                      {lab.tas.length > 0 && (
+                        <div className="ta-lab-tas">
+                          {lab.tas.slice(0, 3).map((ta, idx) => (
+                            <div key={idx} className="ta-assistant-name">
+                              {ta.labs.length >= 3 ? '⭐' : '🎓'} {ta.fullName}
+                            </div>
+                          ))}
+                          {lab.tas.length > 3 && (
+                            <div className="ta-more-tas">
+                              +{lab.tas.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {lab.needsMore && (
                         <div className="ta-lab-warning">
                           {lab.isCritical ? '🔴 Critical: Needs TAs' : '🟡 Needs more TAs'}
