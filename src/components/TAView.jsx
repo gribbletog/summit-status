@@ -15,15 +15,21 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
         const tas = labToTAs[labCode] || [];
         const taCount = tas.length;
         
+        // Staffing logic: 3-5 is good, 0-2 is critical, 6+ is too many
+        let staffingStatus = 'good'; // 3-5 TAs
+        if (taCount < 3) staffingStatus = 'critical';
+        if (taCount > 5) staffingStatus = 'toomany';
+        
         return {
           ...lab,
           labCode,
           tas,
           taCount,
           staffingPercent: Math.min((taCount / 3) * 100, 100),
-          staffingStatus: taCount >= 5 ? 'excellent' : taCount >= 3 ? 'good' : 'critical',
-          needsMore: taCount < 5,
+          staffingStatus,
+          needsMore: taCount < 3,
           isCritical: taCount < 3,
+          tooMany: taCount > 5,
         };
       })
       .sort((a, b) => a.labCode.localeCompare(b.labCode));
@@ -97,7 +103,8 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
     const totalTAs = taData.length;
     const totalAssignments = taData.reduce((sum, ta) => sum + ta.labs.length, 0);
     const criticalLabs = labs.filter(l => l.isCritical).length;
-    const wellStaffedLabs = labs.filter(l => l.taCount >= 5).length;
+    const wellStaffedLabs = labs.filter(l => l.taCount >= 3 && l.taCount <= 5).length;
+    const overStaffedLabs = labs.filter(l => l.taCount > 5).length;
     
     return {
       totalLabs,
@@ -105,7 +112,8 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
       totalAssignments,
       avgTAsPerLab: totalLabs > 0 ? (totalAssignments / totalLabs).toFixed(1) : 0,
       criticalLabs,
-      wellStaffedLabs
+      wellStaffedLabs,
+      overStaffedLabs
     };
   }, [labs, taData]);
 
@@ -153,6 +161,10 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
             <span className="stat-value">{stats.wellStaffedLabs}</span>
             <span className="stat-label">Well Staffed</span>
           </div>
+          <div className="ta-stat warning">
+            <span className="stat-value">{stats.overStaffedLabs}</span>
+            <span className="stat-label">Too Many</span>
+          </div>
         </div>
       </div>
 
@@ -183,30 +195,28 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
                         </span>
                       </div>
                       <h4 className="ta-lab-title">{lab['SESSION TITLE']}</h4>
-                      <div className="ta-lab-instructors">
-                        {getInstructors(lab).map((instructor, idx) => (
-                          <div key={idx} className="ta-instructor-name">
-                            👨‍🏫 {instructor.name}
-                          </div>
-                        ))}
-                      </div>
-                      {lab.tas.length > 0 && (
-                        <div className="ta-lab-tas">
-                          {lab.tas.slice(0, 3).map((ta, idx) => (
-                            <div key={idx} className="ta-assistant-name">
-                              {ta.labs.length >= 3 ? '⭐' : '🎓'} {ta.fullName}
+                      <div className="ta-lab-people">
+                        <div className="ta-lab-instructors">
+                          {getInstructors(lab).map((instructor, idx) => (
+                            <div key={idx} className="ta-instructor-name">
+                              👨‍🏫 {instructor.name}
                             </div>
                           ))}
-                          {lab.tas.length > 3 && (
-                            <div className="ta-more-tas">
-                              +{lab.tas.length - 3} more
-                            </div>
-                          )}
                         </div>
-                      )}
-                      {lab.needsMore && (
-                        <div className="ta-lab-warning">
-                          {lab.isCritical ? '🔴 Critical: Needs TAs' : '🟡 Needs more TAs'}
+                        {lab.tas.length > 0 && (
+                          <div className="ta-lab-tas">
+                            {lab.tas.map((ta, idx) => (
+                              <div key={idx} className="ta-assistant-name">
+                                {ta.labs.length >= 3 ? '⭐' : '🎓'} {ta.fullName}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {(lab.isCritical || lab.tooMany) && (
+                        <div className={`ta-lab-warning ${lab.tooMany ? 'toomany' : ''}`}>
+                          {lab.isCritical && '🔴 Critical: Needs more TAs'}
+                          {lab.tooMany && '🟡 Too many TAs - reduce to 5'}
                         </div>
                       )}
                     </div>

@@ -102,6 +102,10 @@
   color: #10b981;
 }
 
+.ta-stat.warning .stat-value {
+  color: #f59e0b;
+}
+
 /* Track List */
 .ta-tracks-list {
   display: flex;
@@ -179,11 +183,12 @@
 }
 
 .ta-lab-card.good {
-  border-color: #f59e0b;
+  border-color: #10b981;
 }
 
-.ta-lab-card.excellent {
-  border-color: #10b981;
+.ta-lab-card.toomany {
+  border-color: #f59e0b;
+  background: #fffbf0;
 }
 
 .ta-lab-header {
@@ -214,13 +219,13 @@
 }
 
 .ta-lab-staffing.good {
-  background: #fef3c7;
-  color: #f59e0b;
-}
-
-.ta-lab-staffing.excellent {
   background: #d1fae5;
   color: #10b981;
+}
+
+.ta-lab-staffing.toomany {
+  background: #fef3c7;
+  color: #f59e0b;
 }
 
 .ta-lab-title {
@@ -232,11 +237,17 @@
   font-style: normal;
 }
 
+.ta-lab-people {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
 .ta-lab-instructors {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin-bottom: 0.5rem;
 }
 
 .ta-instructor-name {
@@ -249,9 +260,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #e8ecf0;
 }
 
 .ta-assistant-name {
@@ -261,27 +269,20 @@
   font-weight: 500;
 }
 
-.ta-more-tas {
-  font-size: 0.75rem;
-  color: #999;
-  font-style: italic;
-  margin-top: 0.25rem;
-}
-
 .ta-lab-warning {
   font-size: 0.85rem;
   font-weight: 600;
   margin-top: 0.5rem;
   padding: 0.5rem;
   border-radius: 4px;
-  background: #fef3c7;
-  color: #f59e0b;
+  background: #fef2f2;
+  color: #ef4444;
   font-style: normal;
 }
 
-.ta-lab-card.critical .ta-lab-warning {
-  background: #fef2f2;
-  color: #ef4444;
+.ta-lab-warning.toomany {
+  background: #fef3c7;
+  color: #f59e0b;
 }
 
 /* Detail Panel */
@@ -362,13 +363,13 @@
 }
 
 .ta-detail-staffing.good {
-  background: #fef3c7;
-  color: #f59e0b;
-}
-
-.ta-detail-staffing.excellent {
   background: #d1fae5;
   color: #10b981;
+}
+
+.ta-detail-staffing.toomany {
+  background: #fef3c7;
+  color: #f59e0b;
 }
 
 .ta-detail-title {
