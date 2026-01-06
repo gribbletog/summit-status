@@ -120,9 +120,19 @@ const TracksView = ({ sessions, showWIPData, wipCount, onToggleWIP, onWIPUpdate,
       });
     }
     
+    // Filter tracks based on visible sections
+    // Only show tracks that have at least one session in a visible section type
+    filtered = filtered.filter(track => {
+      const hasVisibleSessions = track.sessions.some(session => {
+        const sessionType = session['DERIVED_SESSION_TYPE'];
+        return visibleSections[sessionType];
+      });
+      return hasVisibleSessions;
+    });
+    
     // Sort alphabetically by track name
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
-  }, [trackData, showMainTracksOnly]);
+  }, [trackData, showMainTracksOnly, visibleSections]);
 
   const toggleTrack = (trackName) => {
     setExpandedTracks(prev => ({
