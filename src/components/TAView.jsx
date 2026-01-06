@@ -15,10 +15,11 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
         const tas = labToTAs[labCode] || [];
         const taCount = tas.length;
         
-        // Staffing logic: 3-5 is good, 0-2 is critical, 6+ is too many
-        let staffingStatus = 'good'; // 3-5 TAs
-        if (taCount < 3) staffingStatus = 'critical';
-        if (taCount > 5) staffingStatus = 'toomany';
+        // Staffing logic: 0-2 red (critical), 3 yellow (toofew), 4-5 green (good), 6+ red (toomany)
+        let staffingStatus = 'good'; // 4-5 TAs
+        if (taCount < 3) staffingStatus = 'critical'; // 0-2
+        else if (taCount === 3) staffingStatus = 'toofew'; // 3
+        else if (taCount > 5) staffingStatus = 'toomany'; // 6+
         
         return {
           ...lab,
@@ -27,9 +28,10 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
           taCount,
           staffingPercent: Math.min((taCount / 3) * 100, 100),
           staffingStatus,
-          needsMore: taCount < 3,
           isCritical: taCount < 3,
+          tooFew: taCount === 3,
           tooMany: taCount > 5,
+          isGood: taCount >= 4 && taCount <= 5,
         };
       })
       .sort((a, b) => a.labCode.localeCompare(b.labCode));
@@ -103,8 +105,9 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
     const totalTAs = taData.length;
     const totalAssignments = taData.reduce((sum, ta) => sum + ta.labs.length, 0);
     const criticalLabs = labs.filter(l => l.isCritical).length;
-    const wellStaffedLabs = labs.filter(l => l.taCount >= 3 && l.taCount <= 5).length;
-    const overStaffedLabs = labs.filter(l => l.taCount > 5).length;
+    const tooFewLabs = labs.filter(l => l.tooFew).length;
+    const wellStaffedLabs = labs.filter(l => l.isGood).length;
+    const tooManyLabs = labs.filter(l => l.tooMany).length;
     
     return {
       totalLabs,
@@ -112,8 +115,9 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
       totalAssignments,
       avgTAsPerLab: totalLabs > 0 ? (totalAssignments / totalLabs).toFixed(1) : 0,
       criticalLabs,
+      tooFewLabs,
       wellStaffedLabs,
-      overStaffedLabs
+      tooManyLabs
     };
   }, [labs, taData]);
 
@@ -155,14 +159,18 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
           </div>
           <div className="ta-stat critical">
             <span className="stat-value">{stats.criticalLabs}</span>
-            <span className="stat-label">Need TAs</span>
+            <span className="stat-label">Critical</span>
+          </div>
+          <div className="ta-stat warning">
+            <span className="stat-value">{stats.tooFewLabs}</span>
+            <span className="stat-label">Too Few</span>
           </div>
           <div className="ta-stat excellent">
             <span className="stat-value">{stats.wellStaffedLabs}</span>
-            <span className="stat-label">Well Staffed</span>
+            <span className="stat-label">Perfect</span>
           </div>
-          <div className="ta-stat warning">
-            <span className="stat-value">{stats.overStaffedLabs}</span>
+          <div className="ta-stat critical">
+            <span className="stat-value">{stats.tooManyLabs}</span>
             <span className="stat-label">Too Many</span>
           </div>
         </div>
@@ -213,10 +221,11 @@ const TAView = ({ sessions, taData, labToTAs, onTAUpload }) => {
                           </div>
                         )}
                       </div>
-                      {(lab.isCritical || lab.tooMany) && (
-                        <div className={`ta-lab-warning ${lab.tooMany ? 'toomany' : ''}`}>
-                          {lab.isCritical && '🔴 Critical: Needs more TAs'}
-                          {lab.tooMany && '🟡 Too many TAs - reduce to 5'}
+                      {(lab.isCritical || lab.tooFew || lab.tooMany) && (
+                        <div className={`ta-lab-warning ${lab.tooFew ? 'toofew' : ''} ${lab.tooMany ? 'toomany' : ''}`}>
+                          {lab.isCritical && '🔴 Critical: Way too few TAs'}
+                          {lab.tooFew && '🟡 Too few: Add 1-2 more TAs'}
+                          {lab.tooMany && '🔴 Too many: Reduce to 4-5 TAs'}
                         </div>
                       )}
                     </div>
