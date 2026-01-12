@@ -163,6 +163,13 @@ function SessionCard({ session, isWIP = false, hasWIPOverride = false, onEditWIP
             </div>
           )}
 
+          {session['CFP: PRODUCTS'] && (
+            <div className="session-field">
+              <label>Products</label>
+              {parseAudienceType(session['CFP: PRODUCTS'])}
+            </div>
+          )}
+
           {session['SPEAKER (ASSIGNED TO SESSION TASKS) NAME'] && (
             <div className="session-field">
               <label>Speaker</label>

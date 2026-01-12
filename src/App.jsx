@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import SessionList from './components/SessionList';
 import SpeakersView from './components/SpeakersView';
 import TracksView from './components/TracksView';
+import ProductsView from './components/ProductsView';
 import TAView from './components/TAView';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
@@ -15,7 +16,7 @@ function App() {
   const [rawSessions, setRawSessions] = useState([]); // CSV data without WIP overrides
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [view, setView] = useState('overview'); // 'overview', 'tracks', 'sessions', 'speakers', or 'ta'
+  const [view, setView] = useState('overview'); // 'overview', 'tracks', 'sessions', 'speakers', 'products', or 'ta'
   const [lastUpdated, setLastUpdated] = useState(null);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showWIPData, setShowWIPData] = useState(true);
@@ -23,6 +24,7 @@ function App() {
   const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [showSpeakersFilterOverlay, setShowSpeakersFilterOverlay] = useState(false);
   const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false);
+  const [showProductsFilterOverlay, setShowProductsFilterOverlay] = useState(false);
   
   // TA (Teaching Assistant) state
   const [taData, setTAData] = useState([]);
@@ -294,19 +296,26 @@ function App() {
             Speakers
           </button>
           <button
+            className={view === 'products' ? 'active' : ''}
+            onClick={() => setView('products')}
+          >
+            Products
+          </button>
+          <button
             className={view === 'ta' ? 'active' : ''}
             onClick={() => setView('ta')}
           >
             TA
           </button>
         </nav>
-        {(view === 'sessions' || view === 'speakers' || view === 'tracks') && (
+        {(view === 'sessions' || view === 'speakers' || view === 'tracks' || view === 'products') && (
           <button 
             className="filter-toggle-btn"
             onClick={() => {
               if (view === 'sessions') setShowFilterOverlay(!showFilterOverlay);
               if (view === 'speakers') setShowSpeakersFilterOverlay(!showSpeakersFilterOverlay);
               if (view === 'tracks') setShowTracksFilterOverlay(!showTracksFilterOverlay);
+              if (view === 'products') setShowProductsFilterOverlay(!showProductsFilterOverlay);
             }}
             title="Toggle filters"
           >
@@ -366,6 +375,18 @@ function App() {
             onWIPUpdate={refreshWIPData}
             showFilterOverlay={showTracksFilterOverlay}
             onCloseFilterOverlay={() => setShowTracksFilterOverlay(false)}
+          />
+        )}
+
+        {view === 'products' && (
+          <ProductsView 
+            sessions={sessions}
+            showWIPData={showWIPData}
+            wipCount={wipCount}
+            onToggleWIP={handleWIPDataToggle}
+            onWIPUpdate={refreshWIPData}
+            showFilterOverlay={showProductsFilterOverlay}
+            onCloseFilterOverlay={() => setShowProductsFilterOverlay(false)}
           />
         )}
 

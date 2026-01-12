@@ -40,6 +40,11 @@ export const parseCSV = (file) => {
           
           session['DERIVED_SESSION_TYPE'] = derivedType;
           
+          // Fix SESSION CATALOG URL: replace as25 with as26
+          if (session['SESSION CATALOG URL'] && session['SESSION CATALOG URL'].includes('/as25/')) {
+            session['SESSION CATALOG URL'] = session['SESSION CATALOG URL'].replace('/as25/', '/as26/');
+          }
+          
           return session;
         });
         
