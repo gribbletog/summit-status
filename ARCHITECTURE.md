@@ -27,7 +27,7 @@
 │    • rawSessions (original CSV data)                             │
 │    • sessions (CSV + WIP merged)                                 │
 │    • filters (current filter selections)                         │
-│    • view (active view: overview/tracks/sessions/speakers)       │
+│    • view (active view: overview/tracks/sessions/speakers/products)│
 │    • showWIPData (toggle CSV vs WIP data)                        │
 │    • lastUpdated (file modification date)                        │
 │                                                                  │
@@ -35,25 +35,25 @@
 │    • Merge CSV with WIP overrides from localStorage              │
 │    • Apply filters to create filteredSessions                    │
 │    • Route between views                                         │
-│    • Manage filter overlay state (3 separate overlays)           │
+│    • Manage filter overlay state (4 separate overlays)           │
 │    • Handle WIP data updates and refresh                         │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
-        ┌───────────────────┼───────────────────┬────────────────┐
-        │                   │                   │                │
-        ▼                   ▼                   ▼                ▼
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│  Dashboard   │  │ TracksView   │  │ SessionList  │  │ SpeakersView │
-│  (Overview)  │  │              │  │              │  │              │
-├──────────────┤  ├──────────────┤  ├──────────────┤  ├──────────────┤
-│ • Stats      │  │ • Track list │  │ • Filter btn │  │ • Table      │
-│ • Totals     │  │ • Mini cards │  │ • Session    │  │ • Expandable │
-│ • % Complete │  │ • Expandable │  │   cards list │  │   rows       │
-│   by Track   │  │ • Filter btn │  │              │  │ • Filter btn │
-│              │  │ • WIP toggle │  │              │  │              │
-└──────────────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
-                         │                 │                 │
-                         └─────────────────┼─────────────────┘
+        ┌───────────────────┼───────────────────┬────────────────┬────────────────┐
+        │                   │                   │                │                │
+        ▼                   ▼                   ▼                ▼                ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│  Dashboard   │  │ TracksView   │  │ SessionList  │  │ SpeakersView │  │ ProductsView │
+│  (Overview)  │  │              │  │              │  │              │  │              │
+├──────────────┤  ├──────────────┤  ├──────────────┤  ├──────────────┤  ├──────────────┤
+│ • Stats      │  │ • Track list │  │ • Filter btn │  │ • Table      │  │ • Product    │
+│ • Totals     │  │ • Mini cards │  │ • Session    │  │ • Expandable │  │   list       │
+│ • % Complete │  │ • Expandable │  │   cards list │  │   rows       │  │ • Lab cards  │
+│   by Track   │  │ • Filter btn │  │              │  │ • Filter btn │  │ • Coverage   │
+│              │  │ • WIP toggle │  │              │  │              │  │   gaps       │
+└──────────────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+                         │                 │                 │                 │
+                         └─────────────────┼─────────────────┼─────────────────┘
                                            │
                                            ▼
                                  ┌──────────────────┐
@@ -109,7 +109,8 @@ filteredSessions
    ├─→ Dashboard (aggregates stats)
    ├─→ TracksView (groups by track)
    ├─→ SessionList (renders cards)
-   └─→ SpeakersView (creates speaker rows)
+   ├─→ SpeakersView (creates speaker rows)
+   └─→ ProductsView (groups labs by product)
 ```
 
 ---
@@ -121,16 +122,18 @@ App
 ├── Header
 │   ├── Title: "Summit 2026 Session Status Dashboard"
 │   ├── Updated Badge (clickable → opens SplashScreen)
-│   ├── Nav Tabs [Overview | Tracks | Sessions | Speakers]
-│   └── Filter Button (conditional: only on Sessions/Speakers/Tracks)
+│   ├── Nav Tabs [Overview | Tracks | Sessions | Speakers | Products]
+│   └── Filter Button (conditional: only on Sessions/Speakers/Tracks/Products)
 │
-├── Filter Overlays (3 separate, slide from right)
+├── Filter Overlays (4 separate, slide from right)
 │   ├── Sessions Filter Overlay
 │   │   └── SessionListFilters component
 │   ├── Speakers Filter Overlay
 │   │   └── Speakers filter controls
-│   └── Tracks Filter Overlay
-│       └── Tracks toggles + controls
+│   ├── Tracks Filter Overlay
+│   │   └── Tracks toggles + controls
+│   └── Products Filter Overlay
+│       └── Products toggles + controls
 │
 ├── View Router (conditional rendering based on `view` state)
 │   ├── Dashboard (Overview)
@@ -151,11 +154,18 @@ App
 │   │   └── Session cards list
 │   │       └── SessionCard (full detail)
 │   │
-│   └── SpeakersView
+│   ├── SpeakersView
+│   │   ├── Filter overlay (separate state)
+│   │   └── Speaker table
+│   │       └── Expandable rows
+│   │           └── SessionCard (full detail, expanded)
+│   │
+│   └── ProductsView
 │       ├── Filter overlay (separate state)
-│       └── Speaker table
-│           └── Expandable rows
-│               └── SessionCard (full detail, expanded)
+│       ├── Product list (expandable)
+│       │   └── Lab cards (4 across, mini session cards)
+│       └── Products Without Labs section
+│           └── Grid of products missing lab coverage
 │
 ├── SplashScreen (modal, conditional)
 │   └── FileUpload component
@@ -222,7 +232,7 @@ Header (fixed at top)
 ├── Top Row: Title + Updated Badge
 └── Bottom Row: Nav Tabs + [🔻 Filters] button
                             ↑
-                    (only on Sessions/Speakers/Tracks views)
+                    (only on Sessions/Speakers/Tracks/Products views)
 ```
 
 ### Overlay Behavior
@@ -239,6 +249,7 @@ Header (fixed at top)
 const [showFilterOverlay, setShowFilterOverlay] = useState(false)           // Sessions
 const [showSpeakersFilterOverlay, setShowSpeakersFilterOverlay] = useState(false)  // Speakers
 const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false)      // Tracks
+const [showProductsFilterOverlay, setShowProductsFilterOverlay] = useState(false)  // Products
 
 // Each view gets its own overlay state to prevent conflicts
 ```
@@ -467,9 +478,79 @@ applyWIPOverrides(rawSessions, showWIPData) {
 | SessionList.jsx | ~200 | Sessions view |
 | SpeakersView.jsx | ~270 | Speakers table |
 | TracksView.jsx | ~350 | Tracks with mini cards |
+| ProductsView.jsx | ~300 | Products with lab cards |
+| productsList.js | ~60 | Master product list |
 | wipStorage.js | ~150 | WIP localStorage utils |
 
-**Total:** ~2,100 lines of JavaScript/JSX (plus CSS)
+**Total:** ~2,500 lines of JavaScript/JSX (plus CSS)
+
+---
+
+## Recent Features (January 2026)
+
+### Products View (NEW)
+A dedicated view for analyzing lab coverage by product:
+
+**Features:**
+- **Product List**: Alphabetically sorted list of all products from Hands-on Labs
+- **Lab Cards**: Click product to expand and see associated labs (4-column grid)
+- **Coverage Gap Analysis**: "Products Without Labs" section at bottom
+  - Shows all products from master list without associated labs
+  - Helps identify products that need lab coverage
+  - Excludes umbrella products (Experience Cloud, Creative Cloud, etc.)
+- **Master Product List**: Canonical list of ~50 Adobe products in `productsList.js`
+- **WIP Integration**: Full support for WIP editing, toggling, and indicators
+- **Filter Overlay**: WIP toggle and Expand All/Collapse All button
+
+**Lab Card Features:**
+- Session code (blue badge) and track name
+- Title and description with "More..." expansion
+- All products used in lab (if multiple)
+- Speakers with company information
+- WIP action buttons (Add/Edit/Toggle)
+
+**Implementation:**
+```javascript
+// ProductsView.jsx - Groups labs by product
+const productData = useMemo(() => {
+  const products = {};
+  
+  sessions.forEach(session => {
+    // Only Hands-on Labs
+    if (session['DERIVED_SESSION_TYPE'] !== 'Hands-on Lab') return;
+    
+    const productString = session['CFP: PRODUCTS'];
+    if (!productString) return;
+    
+    // Split comma-separated products
+    const productList = productString.split(',').map(p => p.trim());
+    
+    productList.forEach(product => {
+      if (!products[product]) {
+        products[product] = { name: product, labs: [], totalLabs: 0 };
+      }
+      products[product].labs.push(session);
+      products[product].totalLabs++;
+    });
+  });
+  
+  return Object.values(products);
+}, [sessions]);
+
+// Gap analysis
+const productsWithoutLabs = useMemo(() => {
+  const productsWithLabs = new Set(productData.map(p => p.name));
+  return MASTER_PRODUCTS_LIST.filter(p => !productsWithLabs.has(p));
+}, [productData]);
+```
+
+**Excluded Umbrella Products:**
+- Adobe Experience Manager (parent of Assets, Forms, Sites)
+- Adobe Experience Cloud
+- Adobe Creative Cloud
+- Adobe Document Cloud
+- Adobe GenAI
+- Not Product-Specific
 
 ---
 
@@ -558,6 +639,6 @@ git push origin main
 
 ---
 
-**Last Updated:** December 21, 2025  
+**Last Updated:** January 13, 2026  
 **Repository:** https://github.com/gribbletog/summit-status (private)
 
