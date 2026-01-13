@@ -26,7 +26,7 @@ A React-based web application for visualizing and managing Adobe Summit 2026 ses
 **👋 New Cursor chat? Read this first!**
 
 ### What This App Does
-Visualizes Adobe Summit session data from CSV exports. Four views: Overview (stats), Tracks (by track manager), Sessions (detailed cards), Speakers (table). Includes Work-in-Progress (WIP) system for enriching placeholder sessions.
+Visualizes Adobe Summit session data from CSV exports. Five views: Overview (stats), Tracks (by track manager), Sessions (detailed cards), Speakers (table), Products (labs by product). Includes Work-in-Progress (WIP) system for enriching placeholder sessions.
 
 ### Tech Stack
 React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single-user browser app.
@@ -42,9 +42,10 @@ React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single
 
 ### File Organization
 - `App.jsx`: Main orchestrator (state, routing, data)
-- `src/components/`: View components (Dashboard, SessionList, SessionCard, SpeakersView, TracksView)
+- `src/components/`: View components (Dashboard, SessionList, SessionCard, SpeakersView, TracksView, ProductsView)
 - `src/utils/csvParser.js`: CSV parsing + session type derivation
 - `src/utils/wipStorage.js`: localStorage WIP management
+- `src/utils/productsList.js`: Master product list for coverage tracking
 
 ### Common Gotchas
 - CSV column names are **case-sensitive** and **include spaces**
@@ -61,13 +62,14 @@ React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single
 - **Change CSV parsing**: Update `src/utils/csvParser.js`
 
 ### Current State
-- 4 views working with filter overlays
+- 5 views working with filter overlays
 - WIP system fully functional (three-state: add/edit/toggle per session, localStorage persistence)
 - Tracks view with section filters (show/hide session types)
-- Products display in track cards (two-column layout with speakers)
+- Products view showing labs grouped by product with coverage gap analysis
+- Products display in session cards, track cards, and products view
 - Individual WIP toggle per session (view WIP or CSV data)
-- Filter button in header (bottom-right, only on Sessions/Speakers/Tracks views)
-- Tab order: Overview → Tracks → Sessions → Speakers
+- Filter button in header (bottom-right, only on Sessions/Speakers/Tracks/Products views)
+- Tab order: Overview → Tracks → Sessions → Speakers → Products
 
 ---
 
@@ -179,7 +181,25 @@ To reload data later, click the **Updated: [Date]** badge in the header.
   - Speaker Company (dropdown: All Companies + deduplicated list)
   - Track (dropdown: All Tracks + Internal Track list)
 
-### 5. WIP (Work-in-Progress) Management
+### 5. Products View
+- List of all products (alphabetically sorted) showing associated Hands-on Labs
+- **Expandable products**: Click product to expand and show lab cards
+- **Lab Cards**: Mini cards (4 across) with:
+  - Session title, code, and track
+  - Description with "More..." button for long content
+  - All products used in the lab (if multiple)
+  - Speakers and their companies
+  - Yellow background for WIP sessions (gray when WIP disabled)
+  - "Add WIP Data" / "Edit WIP" / "Toggle WIP" buttons inline
+- **Products Without Labs Section**: 
+  - Shows all products from master list that don't have associated labs
+  - Helps identify coverage gaps in lab offerings
+  - Excludes umbrella products (Experience Cloud, Creative Cloud, Experience Manager, GenAI, etc.)
+- **Filter Overlay** (triggered from header button):
+  - Show WIP Data (checkbox, only if WIP overrides exist)
+  - Expand All / Collapse All (button)
+
+### 6. WIP (Work-in-Progress) Management
 - Detect WIP sessions (generic titles like "Developer Lab 1" or "Placeholder" descriptions)
 - **Three-state system** for each session:
   - **Add WIP**: Create new WIP override for placeholder sessions
@@ -193,11 +213,11 @@ To reload data later, click the **Updated: [Date]** badge in the header.
   - Disabled WIP: Gray background, 📝❌ badge
 - WIP overrides persist until real data comes in future CSV
 
-### 6. Filter System
+### 7. Filter System
 - **Unified header button**: Filter icon button appears in header (bottom-right, aligned with nav tabs)
 - Filter overlays slide in from right side when button clicked
 - Backdrop closes overlay when clicked outside
-- Each view (Sessions, Speakers, Tracks) has its own overlay with relevant filters
+- Each view (Sessions, Speakers, Tracks, Products) has its own overlay with relevant filters
 - **Auto-selection**: Choosing "Skill Exchange" type → auto-sets track to "Skill Exchange"
 - **Auto-selection**: Choosing "Pre-conference Training" → auto-sets track to "ADLS"
 
@@ -223,6 +243,8 @@ summit-status/
 │   │   ├── SpeakersView.css
 │   │   ├── TracksView.jsx           # Tracks view with mini cards
 │   │   ├── TracksView.css
+│   │   ├── ProductsView.jsx         # Products view showing labs by product
+│   │   ├── ProductsView.css
 │   │   ├── FileUpload.jsx           # CSV file upload component
 │   │   ├── FileUpload.css
 │   │   ├── SplashScreen.jsx         # Initial welcome/upload modal
@@ -231,7 +253,8 @@ summit-status/
 │   │   └── WIPModal.css
 │   ├── utils/
 │   │   ├── csvParser.js             # CSV parsing and data transformation
-│   │   └── wipStorage.js            # localStorage WIP data management
+│   │   ├── wipStorage.js            # localStorage WIP data management
+│   │   └── productsList.js          # Master product list for coverage tracking
 │   ├── App.jsx                      # Main app component (routing, state)
 │   ├── App.css                      # Main app styles (header, nav)
 │   ├── index.css                    # Global styles (CSS variables, resets)
@@ -357,7 +380,7 @@ showFilterOverlay // Filter overlay state per view
 └─────────────────────────────────────────────────┘
 ```
 
-**Note:** The filter button only appears when on Sessions, Speakers, or Tracks views (not on Overview).
+**Note:** The filter button only appears when on Sessions, Speakers, Tracks, or Products views (not on Overview).
 
 ---
 
@@ -531,6 +554,72 @@ speakerRows = [
 
 ---
 
+### ProductsView.jsx (Products View)
+
+**Data Aggregation:**
+- Groups Hands-on Labs by product (from CFP: PRODUCTS field)
+- Filters to only include Labs (ignores sessions, online sessions, etc.)
+- Compares against master product list to identify coverage gaps
+- Sorts products alphabetically
+
+**Product Display:**
+```
+▶ Adobe Real-Time CDP B2B Edition           2 Labs
+  
+  [When expanded:]
+  
+  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+  │ Lab 1  │ │ Lab 2  │
+  └────────┘ └────────┘
+```
+
+**Filters & Toggles (in Filter Overlay):**
+- Show WIP Data (only if `wipCount > 0`)
+- Expand All / Collapse All button
+
+**Props:**
+- `sessions` - Full session array (filters to Labs only)
+- `showWIPData` - Boolean for WIP data display
+- `wipCount` - Number of active WIP overrides
+- `onToggleWIP` - Callback for WIP toggle
+- `onWIPUpdate` - Callback after WIP edit/delete
+- `showFilterOverlay` - Boolean to show/hide filter panel
+- `onCloseFilterOverlay` - Callback to close filter panel
+
+**Lab Cards:**
+- Similar to TracksView mini cards but with additional metadata:
+  - Session code (blue badge)
+  - Track name (gray text)
+  - Title and description (truncated with "More..." button)
+  - All products used in the lab (if multiple products)
+  - Speakers with company info
+- Yellow background + border for active WIP sessions
+- Gray background + border for disabled WIP sessions
+- WIP action buttons inline with content (same as TracksView)
+
+**Products Without Labs Section:**
+- Displays at bottom of view
+- Shows all products from `MASTER_PRODUCTS_LIST` that don't have associated labs
+- Count displayed in heading: "Products Without Labs (X)"
+- Grid layout matching lab cards
+- Neutral styling (white cards with gray borders)
+- Helps identify product coverage gaps
+- Automatically excludes umbrella products:
+  - Adobe Experience Manager (parent of Assets, Forms, Sites, etc.)
+  - Adobe Experience Cloud (umbrella product)
+  - Adobe Creative Cloud (umbrella product)
+  - Adobe Document Cloud (umbrella product)
+  - Adobe GenAI (umbrella term)
+  - Not Product-Specific (meta category)
+
+**Master Product List:**
+- Defined in `src/utils/productsList.js`
+- Canonical list of ~50 Adobe products
+- Used for gap analysis only (not for filtering CSV data)
+- Manually curated to exclude umbrella/parent products
+
+---
+
 ### WIPModal.jsx (WIP Editing)
 
 **Form Fields:**
@@ -578,7 +667,7 @@ const [stats, setStats] = useState(null)
 const [lastUpdated, setLastUpdated] = useState(null)
 
 // View state
-const [view, setView] = useState('overview')           // 'overview' | 'tracks' | 'sessions' | 'speakers'
+const [view, setView] = useState('overview')           // 'overview' | 'tracks' | 'sessions' | 'speakers' | 'products'
 
 // Filter state
 const [filters, setFilters] = useState({
@@ -597,6 +686,7 @@ const [wipCount, setWipCount] = useState(0)
 const [showFilterOverlay, setShowFilterOverlay] = useState(false)
 const [showSpeakersFilterOverlay, setShowSpeakersFilterOverlay] = useState(false)
 const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false)
+const [showProductsFilterOverlay, setShowProductsFilterOverlay] = useState(false)
 ```
 
 ### Component-Level State
@@ -615,6 +705,12 @@ const [showTracksFilterOverlay, setShowTracksFilterOverlay] = useState(false)
 - `expandedCards` (Set of expanded card IDs)
 - `editingSession` (currently editing WIP session)
 - `visibleSections` (object mapping section type → boolean visibility)
+
+**ProductsView**:
+- `expandAll`
+- `expandedProducts` (object mapping product name → boolean)
+- `expandedCards` (Set of expanded card IDs)
+- `editingSession` (currently editing WIP session)
 
 **WIPModal**: Form field state (`title`, `description`, `speaker1`, etc.)
 
