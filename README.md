@@ -2,6 +2,12 @@
 
 A React-based web application for visualizing and managing Adobe Summit 2026 session data. This tool provides multiple views for analyzing session status, speaker information, track completion, and includes Work-in-Progress (WIP) data management capabilities.
 
+## 📚 Documentation
+
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - Technical architecture and design patterns
+- **[Scheduling Grid Guide](docs/SCHEDULING_GRID_GUIDE.md)** - User guide for the Scheduling Grid feature
+- **[TA View Plan](docs/TA_VIEW_PLAN.md)** - Teaching Assistant view documentation
+
 ---
 
 ## Table of Contents
@@ -17,7 +23,8 @@ A React-based web application for visualizing and managing Adobe Summit 2026 ses
 9. [Styling Architecture](#styling-architecture)
 10. [WIP (Work-in-Progress) System](#wip-work-in-progress-system)
 11. [Filter System](#filter-system)
-12. [Development Guide](#development-guide)
+12. [Scheduling Grid Feature](#scheduling-grid-feature)
+13. [Development Guide](#development-guide)
 
 ---
 
@@ -26,7 +33,7 @@ A React-based web application for visualizing and managing Adobe Summit 2026 ses
 **👋 New Cursor chat? Read this first!**
 
 ### What This App Does
-Visualizes Adobe Summit session data from CSV exports. Five views: Overview (stats), Tracks (by track manager), Sessions (detailed cards), Speakers (table), Products (labs by product). Includes Work-in-Progress (WIP) system for enriching placeholder sessions.
+Visualizes Adobe Summit session data from CSV exports. Six views: Overview (stats), Tracks (by track manager), Sessions (detailed cards), Speakers (table), Products (labs by product), and **Scheduling Grid** (visual schedule with time slots and venues). Includes Work-in-Progress (WIP) system for enriching placeholder sessions.
 
 ### Tech Stack
 React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single-user browser app.
@@ -42,10 +49,13 @@ React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single
 
 ### File Organization
 - `App.jsx`: Main orchestrator (state, routing, data)
-- `src/components/`: View components (Dashboard, SessionList, SessionCard, SpeakersView, TracksView, ProductsView)
+- `src/components/`: View components (Dashboard, SessionList, SessionCard, SpeakersView, TracksView, ProductsView, SchedulingGrid, TAView)
 - `src/utils/csvParser.js`: CSV parsing + session type derivation
+- `src/utils/scheduleParser.js`: Scheduling grid CSV parsing
+- `src/utils/trackColors.js`: Track color mapping (24 distinct colors)
 - `src/utils/wipStorage.js`: localStorage WIP management
 - `src/utils/productsList.js`: Master product list for coverage tracking
+- `src/utils/taParser.js`: TA (Teaching Assistant) data parsing
 
 ### Common Gotchas
 - CSV column names are **case-sensitive** and **include spaces**
@@ -62,14 +72,16 @@ React 18 + Vite + localStorage + PapaParse. No backend, no state library. Single
 - **Change CSV parsing**: Update `src/utils/csvParser.js`
 
 ### Current State
-- 5 views working with filter overlays
+- 6 views working with filter overlays
 - WIP system fully functional (three-state: add/edit/toggle per session, localStorage persistence)
 - Tracks view with section filters (show/hide session types)
 - Products view showing labs grouped by product with coverage gap analysis
+- **Scheduling Grid view** with visual schedule, track colors, day/type filters, and slide-in detail panel
+- TA view for managing Teaching Assistant assignments
 - Products display in session cards, track cards, and products view
 - Individual WIP toggle per session (view WIP or CSV data)
 - Filter button in header (bottom-right, only on Sessions/Speakers/Tracks/Products views)
-- Tab order: Overview → Tracks → Sessions → Speakers → Products
+- Tab order: Overview → Tracks → Sessions → Speakers → Products → TA → **Scheduling Grid**
 
 ---
 
@@ -213,7 +225,32 @@ To reload data later, click the **Updated: [Date]** badge in the header.
   - Disabled WIP: Gray background, 📝❌ badge
 - WIP overrides persist until real data comes in future CSV
 
-### 7. Filter System
+### 7. Scheduling Grid View
+- **Visual schedule display**: Grid showing sessions/labs by venue and time slot
+- **Track-based color coding**: 24 distinct colors for instant track identification
+  - Limited palette: Only 2 blues, 1 purple for maximum distinction
+  - Colors span entire spectrum: reds, oranges, yellows, greens, teals, blues, purples, pinks, browns, grays
+  - Each session cell has light background + thick left border in track color
+- **Interactive cells**: Click any session to view details in slide-in panel
+- **Full title display**: Session codes + complete titles from main CSV
+- **Filtering controls**:
+  - **Day View**: Everything All at Once, Monday, Tuesday, Wednesday
+  - **Type Filter**: All, Sessions, Labs (determined by session code prefix)
+  - **Track Color Legend**: Collapsible legend showing all track colors
+- **Detail panel** (slides in from left as overlay):
+  - Session title with track badge
+  - **Collapsible description** (closed by default, HTML-rendered)
+  - Scheduling info (code, day, time, venue, capacity)
+  - Session metadata (type, status, published)
+  - Speakers and products as badges
+  - Link to session catalog
+- **Grid remains visible** underneath panel for comparing concurrent sessions
+- **Special cell states**: OPEN (gray), TBD (yellow), HOLD (orange), REPEAT, Do Not Schedule (red)
+- **Sticky headers**: Venue column and time slot row stay visible while scrolling
+- **Conflict detection**: Easy to spot scheduling conflicts at a glance
+- **CSV upload**: Separate upload button for scheduling grid CSV file
+
+### 8. Filter System
 - **Unified header button**: Filter icon button appears in header (bottom-right, aligned with nav tabs)
 - Filter overlays slide in from right side when button clicked
 - Backdrop closes overlay when clicked outside
@@ -617,6 +654,142 @@ speakerRows = [
 - Canonical list of ~50 Adobe products
 - Used for gap analysis only (not for filtering CSV data)
 - Manually curated to exclude umbrella/parent products
+
+---
+
+### SchedulingGrid.jsx (Scheduling Grid View)
+
+**Purpose:**
+- Visual schedule view showing sessions/labs arranged by time slot and venue
+- Interactive grid with track-based color coding
+- Slide-in detail panel for session information
+- Day and type filtering
+
+**Data Sources:**
+1. **Scheduling Grid CSV** - Venue/time slot assignments (required)
+2. **Session Details CSV** - Full session information (optional but recommended)
+
+**Layout:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│  📅 Scheduling Grid        [📁 Upload New Grid]             │
+├─────────────────────────────────────────────────────────────┤
+│ 📆 DAY VIEW                🎯 TYPE FILTER   🎨 TRACK COLOR  │
+│ [Everything, All at Once] [Monday] [Tuesday] [Wednesday]    │
+│ [All] [Sessions] [Labs]                    [View Legend ▼]  │
+│                                                              │
+│ [When legend expanded:]                                     │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 🔴 Analytics  🟠 B2B Customer Journeys  🟡 Commerce     │ │
+│ │ 🟢 Content Supply Chain  🔵 Developers  🟣 Customer...  │ │
+│ └─────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Venue       │ Sessions #1  │ Sessions #2  │ Labs #1  │... │
+│              │ 10:00-11:00  │ 11:30-12:30  │ 9:30-11:00│   │
+│──────────────┼──────────────┼──────────────┼───────────┼────│
+│ Level 5      │ S324         │ S331         │ L123      │    │
+│ Palazzo A    │ Drive Growth │ Build Brand  │ CDM Lab   │    │
+│ (CAP 324)    │ [colored by  │ [colored by  │ [colored] │    │
+│              │  track]      │  track]      │           │    │
+│──────────────┼──────────────┼──────────────┼───────────┼────│
+│ Level 4      │ S231         │ OPEN         │ L223      │    │
+│ Delfino 1    │ Adobe on...  │              │ Orchestr..│    │
+│ (CAP 423)    │ [colored]    │ [gray]       │ [colored] │    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**State Management:**
+```javascript
+- view: 'all' | 'monday' | 'tuesday' | 'wednesday'
+- filterType: 'all' | 'Session' | 'Lab'  
+- showLegend: boolean
+- selectedSession: object | null
+- sessionDetails: object | null  
+- showDescription: boolean
+```
+
+**Key Features:**
+
+1. **Grid Display:**
+   - Sticky venue column (left) and time slot headers (top)
+   - Session cells color-coded by track (24 distinct colors)
+   - Session code + full title displayed in each cell
+   - Hover effect with scale and shadow on clickable cells
+
+2. **Track Color System:**
+   - 24 colors across spectrum (defined in `trackColors.js`)
+   - Limited blues (2), purples (1) for maximum distinction
+   - Each cell has light background + thick left border in track color
+   - Collapsible legend showing all track colors
+
+3. **Cell Types:**
+   - **Session/Lab cells**: Clickable, show code + title, track-colored
+   - **OPEN**: Gray, non-clickable
+   - **TBD/HOLD**: Yellow/orange, clickable
+   - **Do Not Schedule**: Red, non-clickable
+   - **REPEAT**: Indicated with label
+
+4. **Detail Panel (Slide-in from Left):**
+   - Opens on cell click as overlay
+   - Semi-transparent backdrop
+   - Grid remains visible underneath
+   - Sections:
+     - Title with track badge (colored by track)
+     - **Collapsible Description** (▶ expands, ▼ collapses)
+       - Closed by default
+       - HTML-rendered content (paragraphs, lists, bold)
+     - Scheduling Information (code, day, time, venue, capacity)
+     - Session Information (type, status, published)
+     - Speakers (as badges)
+     - Products (as badges)
+     - Catalog link
+
+5. **Filtering:**
+   - **Day**: Filter to specific conference day or view all
+   - **Type**: Determined by session CODE prefix (L### = Lab, S### = Session)
+   - Combined filters (e.g., Monday + Labs)
+
+**Props:**
+- `schedule` - Parsed scheduling grid data from CSV
+- `allSessions` - Main session details array (for enrichment)
+- `onScheduleUpload` - Callback for CSV upload
+
+**Key Functions:**
+- `getFilteredSchedule()` - Filters by day and type
+- `getCellStyle()` - Returns track-based styling (background, border)
+- `formatSessionDisplay()` - Renders cell content (gets title from allSessions)
+- `handleCellClick()` - Opens detail panel
+- `renderHTML()` - Safely renders HTML descriptions
+
+**Data Flow:**
+```
+Scheduling Grid CSV
+        ↓
+   scheduleParser.js
+        ↓
+   { timeSlots, venues, days }
+        ↓
+   SchedulingGrid.jsx
+        ↓
+   Session clicked → findSessionByCode(allSessions)
+        ↓
+   Show detail panel with full session info
+```
+
+**CSS Classes:**
+- `.schedule-cell` - Base cell style
+- `.has-session` - Clickable session cell
+- `.open`, `.tbd`, `.hold`, `.repeat`, `.do-not-schedule` - Special states
+- `.session-code` - Blue session code display
+- `.session-title` - Smaller title text
+- `.details-overlay-panel` - Slide-in panel from left
+- `.details-overlay-backdrop` - Semi-transparent backdrop
+- `.description-accordion` - Collapsible description section
+
+**Helper Files:**
+- `src/utils/scheduleParser.js` - Parses scheduling grid CSV
+- `src/utils/trackColors.js` - 24-color track mapping
 
 ---
 
@@ -1098,6 +1271,256 @@ npm run preview
 ```
 
 Output will be in `dist/` directory.
+
+---
+
+## Scheduling Grid Feature
+
+The Scheduling Grid provides a visual, interactive view of the Summit schedule showing when and where each session/lab is scheduled across venues and time slots.
+
+### Overview
+
+The Scheduling Grid displays sessions in a spreadsheet-style layout with:
+- **Venues** (rows): Conference rooms with capacity information
+- **Time Slots** (columns): Sessions #1-10, Labs #1-7, Strategy Keynotes
+- **Color-coded cells**: Each session colored by its track for instant visual identification
+- **Interactive details**: Click any session to view full information in a slide-in panel
+
+### Key Features
+
+#### 1. **Visual Schedule Layout**
+- Grid-based view showing the entire Summit schedule at a glance
+- Sticky headers (venue column and time slot row) for easy navigation while scrolling
+- Session codes (S###, L###) displayed with full titles from session details CSV
+- Track-based color coding with 24 distinct colors
+
+#### 2. **Filtering & Views**
+- **Day View Filter**: Everything All at Once, Monday, Tuesday, Wednesday
+- **Type Filter**: All, Sessions, Labs
+- **Track Color Legend**: Collapsible legend showing all tracks and their colors
+
+#### 3. **Track Color System**
+- 24 distinct colors carefully selected across the color spectrum
+- Maximum visual separation (only 2 blues, 1 purple, diverse palette)
+- Colors include: reds, oranges, yellows, greens, teals, blues, purples, pinks, browns, grays
+- Each session cell has:
+  - Light background color (track's light color)
+  - Thick left border (track's main color)
+  - Session code and title displayed
+
+#### 4. **Slide-in Detail Panel**
+- Opens from the left as an overlay (like filter panels in other views)
+- Grid remains visible underneath for comparison
+- Click backdrop or X button to close
+- Shows complete session information:
+  - **Highlighted title section** with track badge in track color
+  - **Collapsible description** (closed by default, expands to show HTML-formatted content)
+  - **Scheduling information**: Session code, day, time slot, venue, capacity
+  - **Session information**: Type, status, published state
+  - **Speakers**: Displayed as badges
+  - **Products**: Displayed as badges (like in other views)
+  - **Catalog link**: Button to view in session catalog
+
+#### 5. **Special Cell States**
+- **OPEN**: Available slot (gray)
+- **TBD**: To be determined (yellow)
+- **HOLD**: Reserved slot (orange)
+- **REPEAT**: Repeat session indicator
+- **Do Not Schedule**: Blocked slot (red)
+
+### Data Sources
+
+The Scheduling Grid uses TWO CSV files:
+
+#### 1. **Scheduling Grid CSV** (Required)
+- Upload via "Upload New Grid" button
+- Complex structure with time slots in headers, venues in rows
+- Contains: Session codes, venue names, capacity, time slot assignments
+- Special markers: OPEN, HOLD, TBD, REPEAT, Do Not Schedule
+
+#### 2. **Session Details CSV** (Optional but recommended)
+- The main CSV loaded at app startup
+- Provides: Full session titles, descriptions, speakers, products, status
+- When loaded, enriches grid cells with complete information
+- Without it, only session codes from scheduling grid are shown
+
+### File Structure
+
+```
+src/
+├── components/
+│   ├── SchedulingGrid.jsx      # Main grid component
+│   └── SchedulingGrid.css      # Grid styling
+├── utils/
+│   ├── scheduleParser.js       # Parses scheduling grid CSV
+│   └── trackColors.js          # 24-color track mapping
+```
+
+### Technical Implementation
+
+#### scheduleParser.js
+- Parses complex CSV structure with multiple header rows
+- Extracts time slots from first two rows
+- Identifies venues from column 1 (rooms with capacity)
+- Skips metadata rows (Speakers, Special Notes, Add Mics, AV)
+- Parses session codes and titles from cell content
+- **Determines session type from code prefix** (L### = Lab, S### = Session, SK## = Strategy Keynote)
+- Creates structured data: `{ timeSlots, venues, days }`
+
+#### trackColors.js
+- Defines 24 distinct colors for tracks
+- Each color has: `background`, `text`, `light`, `border`
+- Organized by color family (reds, oranges, yellows, etc.)
+- Supports track name variations and aliases
+- Provides `getTrackColor()` and `getSessionTrackColor()` helpers
+
+#### SchedulingGrid.jsx Component
+**State Management:**
+```javascript
+- view: 'all' | 'monday' | 'tuesday' | 'wednesday'
+- filterType: 'all' | 'Session' | 'Lab'
+- showLegend: boolean (track color legend visibility)
+- selectedSession: object | null (for detail panel)
+- sessionDetails: object | null (full session info from main CSV)
+- showDescription: boolean (description accordion state)
+```
+
+**Key Functions:**
+- `getFilteredSchedule()`: Filters by day and type
+- `getCellStyle()`: Returns track-based styling for each cell
+- `getCellClassName()`: Adds CSS classes based on cell state
+- `formatSessionDisplay()`: Renders cell content (code + title from session details CSV)
+- `handleCellClick()`: Opens detail panel with session information
+- `renderHTML()`: Safely renders HTML descriptions using dangerouslySetInnerHTML
+
+#### SchedulingGrid.css
+**Grid Layout:**
+- Fixed-width venue column (280px) with sticky positioning
+- Scrollable table with sticky headers
+- Minimum column width (220px) for readability
+- Responsive adjustments for mobile
+
+**Cell Styling:**
+- Track colors applied via inline styles (background, border-left)
+- Hover effects with scale transform and shadow
+- Session code in bold, colored text
+- Session title in smaller, wrapped text
+
+**Detail Panel:**
+- Fixed position overlay from left (500px width)
+- Semi-transparent backdrop (rgba(0, 0, 0, 0.5))
+- Slide-in animation (0.3s ease)
+- Styled sections with modern cards
+- HTML description rendering with proper paragraph/list formatting
+
+### Color Palette Strategy
+
+The 24-color palette was designed for maximum distinction:
+
+**Color Distribution:**
+- Reds (2): Crimson, Ruby
+- Oranges (2): Bright Orange, Dark Orange
+- Yellows (2): Gold, Dark Goldenrod
+- Greens (3): Lawn Green, Forest Green, Dark Olive
+- Teals (2): Dark Cyan, Light Sea Green
+- Blues (2 only!): Dodger Blue, Cobalt Blue
+- Purple (1 only!): Dark Magenta
+- Indigos (2): Indigo, Rebecca Purple
+- Pinks (1): Deep Pink
+- Browns (3): Saddle Brown, Peru, Chocolate
+- Grays (2): Dim Gray, Dark Gray
+- Special (2): Coral, Rosy Brown
+
+**Design Principles:**
+- Strict limits on similar colors (max 2-3 per hue)
+- Wide hue variation across color wheel
+- Different saturation and brightness levels
+- Accessible text colors (white on dark, black on light)
+- Named after standard web colors for consistency
+
+### Usage Workflow
+
+#### Initial Setup
+1. Navigate to "Scheduling Grid" tab
+2. Click "Upload New Grid" button
+3. Select scheduling grid CSV file
+4. Grid populates with sessions color-coded by track
+
+#### Viewing the Schedule
+1. **Select Day**: Choose "Everything, All at Once" or specific day (Monday/Tuesday/Wednesday)
+2. **Filter Type**: Toggle between All, Sessions, or Labs
+3. **View Legend**: Click "View Legend" to see track color mappings
+4. **Scroll Grid**: Use sticky headers to navigate large schedule
+
+#### Checking Session Details
+1. Click any session cell (colored cells with session codes)
+2. Detail panel slides in from left showing:
+   - Title with track badge
+   - Description (click ▶ to expand)
+   - Scheduling info (code, day, time, venue, capacity)
+   - Session metadata (type, status, published)
+   - Speakers and products as badges
+   - Link to catalog
+3. Grid remains visible for comparing concurrent sessions
+4. Click backdrop or X to close panel
+
+#### Identifying Conflicts
+1. Select a time slot by looking at a specific column
+2. Scan down to see all sessions scheduled at that time
+3. Click sessions to view details and check for:
+   - Track clustering (too many of same track)
+   - Competing content (similar topics at same time)
+   - Speaker conflicts (same speaker in multiple sessions)
+   - Venue capacity issues
+
+### Common Issues & Solutions
+
+**Issue**: Grid shows only session codes, no titles
+- **Cause**: Session details CSV not loaded
+- **Solution**: Upload main session details CSV at app startup
+
+**Issue**: Labs filter shows no results
+- **Cause**: Sessions were in "Labs #1" time slot but had S### codes
+- **Solution**: Fixed - now determines type from session CODE prefix (L### = Lab)
+
+**Issue**: All cells show same color when clicking a session
+- **Cause**: Bug in getCellStyle() using selected session for all cells
+- **Solution**: Fixed - now each cell looks up its own track color
+
+**Issue**: Empty cells are clickable
+- **Cause**: Session codes existed but weren't visible
+- **Solution**: Fixed - always display session codes; prevent clicks on truly empty cells
+
+**Issue**: Description shows HTML tags
+- **Cause**: Not rendering HTML content
+- **Solution**: Fixed - uses dangerouslySetInnerHTML like SessionCard
+
+**Issue**: Too many similar colors (lots of blues)
+- **Cause**: Initial color palette wasn't diverse enough
+- **Solution**: Fixed - limited to 2 blues, 1 purple; added diverse palette across spectrum
+
+### Integration with Other Views
+
+- **Session codes** link to main session details CSV
+- **Track colors** are consistent with track identity
+- **Products** display as badges (same style as other views)
+- **Speakers** display as badges (consistent styling)
+- **Descriptions** rendered with HTML (same as SessionCard)
+- **Published status** shown with colored indicators (✓/⏳)
+
+### Future Enhancements
+
+Potential improvements for Scheduling Grid:
+1. **Drag-and-drop** to reschedule sessions
+2. **Export** modified schedules back to CSV
+3. **Conflict warnings** with automatic detection
+4. **Filter by track** or product
+5. **Search** for specific sessions
+6. **Highlight related sessions** (same track, speaker, product)
+7. **Print view** optimized for paper schedules
+8. **Thursday** scheduling support (currently Mon-Wed only)
+9. **Multi-select** to compare multiple sessions
+10. **Notes/comments** per time slot
 
 ---
 

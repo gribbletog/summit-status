@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { parseCSV, getUniqueValues, getStats } from './utils/csvParser';
 import { applyWIPOverrides, countWIPOverrides } from './utils/wipStorage';
 import { parseTACSV, createLabToTAMapping } from './utils/taParser';
+import { parseScheduleCSV } from './utils/scheduleParser';
 import Dashboard from './components/Dashboard';
 import SessionList from './components/SessionList';
 import SpeakersView from './components/SpeakersView';
 import TracksView from './components/TracksView';
 import ProductsView from './components/ProductsView';
 import TAView from './components/TAView';
+import SchedulingGrid from './components/SchedulingGrid';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
 
@@ -16,7 +18,7 @@ function App() {
   const [rawSessions, setRawSessions] = useState([]); // CSV data without WIP overrides
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [view, setView] = useState('overview'); // 'overview', 'tracks', 'sessions', 'speakers', 'products', or 'ta'
+  const [view, setView] = useState('overview'); // 'overview', 'tracks', 'sessions', 'speakers', 'products', 'ta', or 'schedule'
   const [lastUpdated, setLastUpdated] = useState(null);
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showWIPData, setShowWIPData] = useState(true);
@@ -29,6 +31,9 @@ function App() {
   // TA (Teaching Assistant) state
   const [taData, setTAData] = useState([]);
   const [labToTAs, setLabToTAs] = useState({});
+  
+  // Scheduling Grid state
+  const [scheduleData, setScheduleData] = useState(null);
   const [filters, setFilters] = useState({
     sessionType: '',
     internalTrack: '',
@@ -194,6 +199,22 @@ function App() {
     }
   };
 
+  // Handle Scheduling Grid CSV upload
+  const handleScheduleUpload = async (file) => {
+    try {
+      console.log('📁 Parsing scheduling grid CSV...');
+      const data = await parseScheduleCSV(file);
+      console.log('✅ Scheduling grid parsed:', data);
+      console.log('  - Venues:', data.venues?.length || 0);
+      console.log('  - Time slots:', data.timeSlots?.length || 0);
+      console.log('  - Days:', data.days);
+      setScheduleData(data);
+    } catch (error) {
+      console.error('❌ Error parsing scheduling grid CSV:', error);
+      alert(`Error parsing scheduling grid CSV file: ${error.message}\n\nPlease check the file format and try again.`);
+    }
+  };
+
   // Re-apply WIP overrides when toggle changes
   useEffect(() => {
     if (rawSessions.length > 0) {
@@ -307,6 +328,12 @@ function App() {
           >
             TA
           </button>
+          <button
+            className={view === 'schedule' ? 'active' : ''}
+            onClick={() => setView('schedule')}
+          >
+            Scheduling Grid
+          </button>
         </nav>
         {(view === 'sessions' || view === 'speakers' || view === 'tracks' || view === 'products') && (
           <button 
@@ -396,6 +423,14 @@ function App() {
             taData={taData}
             labToTAs={labToTAs}
             onTAUpload={handleTAUpload}
+          />
+        )}
+
+        {view === 'schedule' && (
+          <SchedulingGrid
+            schedule={scheduleData}
+            allSessions={sessions}
+            onScheduleUpload={handleScheduleUpload}
           />
         )}
       </main>
